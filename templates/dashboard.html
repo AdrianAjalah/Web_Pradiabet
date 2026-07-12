@@ -1,0 +1,622 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    body {
+        background:
+            radial-gradient(circle at top left, rgba(16,185,129,.22), transparent 34rem),
+            radial-gradient(circle at 92% 18%, rgba(20,184,166,.18), transparent 28rem),
+            linear-gradient(135deg, #ecfdf5 0%, #f8fafc 48%, #f0fdfa 100%);
+    }
+    .glass-card {
+        background: rgba(255,255,255,.78);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,.72);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, .08);
+    }
+    .soft-card {
+        background: rgba(255,255,255,.9);
+        border: 1px solid rgba(226, 232, 240, .82);
+        box-shadow: 0 14px 40px rgba(15, 23, 42, .055);
+    }
+    .lift-card {
+        transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+    }
+    .lift-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 26px 60px rgba(15, 23, 42, .12);
+        border-color: rgba(16, 185, 129, .36);
+    }
+    .float-orb { animation: floatOrb 7s ease-in-out infinite; }
+    .float-orb-2 { animation: floatOrb 9s ease-in-out infinite reverse; }
+    @keyframes floatOrb {
+        0%, 100% { transform: translate3d(0,0,0) scale(1); }
+        50% { transform: translate3d(18px,-22px,0) scale(1.04); }
+    }
+    .fade-up { animation: fadeUp .55s ease both; }
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(18px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .shimmer {
+        position: relative;
+        overflow: hidden;
+    }
+    .shimmer::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        transform: translateX(-120%);
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.34), transparent);
+        animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+        0%, 55% { transform: translateX(-120%); }
+        100% { transform: translateX(120%); }
+    }
+    .macro-bar { height: 10px; border-radius: 999px; overflow: hidden; background: rgba(226,232,240,.8); }
+    .macro-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #34d399, #14b8a6); }
+    .meal-image-overlay {
+        background: linear-gradient(180deg, rgba(15,23,42,.06) 0%, rgba(15,23,42,.0) 40%, rgba(15,23,42,.2) 100%);
+    }
+    .spin-soft { animation: spinSoft 1.2s linear infinite; }
+    @keyframes spinSoft { to { transform: rotate(360deg); } }
+    .pulse-dot { animation: pulseDot 1.8s ease-in-out infinite; }
+    @keyframes pulseDot { 0%,100% { opacity: .45; transform: scale(.9); } 50% { opacity: 1; transform: scale(1.15); } }
+</style>
+
+<div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <div class="float-orb absolute -top-28 -left-24 w-[28rem] h-[28rem] rounded-full bg-emerald-200/40 blur-3xl"></div>
+    <div class="float-orb-2 absolute top-24 -right-28 w-[24rem] h-[24rem] rounded-full bg-teal-200/45 blur-3xl"></div>
+    <div class="absolute bottom-0 left-1/3 w-[32rem] h-[18rem] rounded-full bg-cyan-100/40 blur-3xl"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 w-full relative z-10">
+
+    {% if needs_update %}
+    <div class="fade-up mb-8 glass-card rounded-[1.75rem] p-5 md:p-6 border-l-4 border-amber-400 flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-xl shadow-sm">
+                <i class="fas fa-bell"></i>
+            </div>
+            <div>
+                <div class="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[.18em] text-amber-600 mb-1">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 pulse-dot"></span> Reminder Profil
+                </div>
+                <h3 class="text-amber-900 font-extrabold text-base md:text-lg">Waktunya Update Profil Kesehatanmu</h3>
+                <p class="text-amber-700 text-sm mt-1 leading-relaxed max-w-2xl">
+                    Kondisi tubuh bisa berubah. Perbarui berat badan dan data medismu agar target kalori, makro, dan menu tetap akurat.
+                </p>
+            </div>
+        </div>
+        <a href="/questionnaire" class="shrink-0 w-full md:w-auto text-center bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-2xl font-extrabold transition-all shadow-lg shadow-amber-500/20 hover:-translate-y-0.5">
+            Perbarui Sekarang
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- HERO -->
+    <section class="fade-up relative overflow-hidden rounded-[2.25rem] bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 p-6 md:p-8 lg:p-10 text-white shadow-2xl shadow-emerald-900/10 mb-8">
+        <div class="absolute inset-0 opacity-20">
+            <div class="absolute -top-24 -right-16 w-72 h-72 bg-white rounded-full blur-3xl"></div>
+            <div class="absolute bottom-0 left-1/3 w-96 h-32 bg-emerald-200 rounded-full blur-3xl"></div>
+        </div>
+        <div class="relative grid grid-cols-1 lg:grid-cols-[1.25fr_.75fr] gap-8 items-center">
+            <div>
+                <div class="inline-flex items-center gap-2 rounded-full bg-white/15 border border-white/20 px-3 py-1.5 text-xs font-bold mb-5 backdrop-blur">
+                    <span class="w-2 h-2 rounded-full bg-lime-300 pulse-dot"></span>
+                    Dashboard Kesehatan Aktif
+                </div>
+                <h1 class="text-3xl md:text-5xl font-black tracking-tight leading-tight">
+                    Halo, {{ user.username }} 👋<br>
+                    <span class="text-emerald-100">menu harianmu siap.</span>
+                </h1>
+                <p class="mt-4 text-emerald-50/90 text-sm md:text-base leading-relaxed max-w-2xl">
+                    Target kalori, makro, pola waktu makan, diet aktif, dan meal plan hari ini sudah disusun berdasarkan profil kesehatanmu.
+                </p>
+
+                <div class="flex flex-wrap gap-2 mt-7">
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-3xl bg-white/14 border border-white/20 backdrop-blur p-5 shimmer">
+                    <p class="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-2">Pola Makan</p>
+                    {% if analysis.pola_waktu_makan == 'intermittent_fasting' %}
+                        <div class="text-2xl font-black">IF {{ analysis.pola_puasa or '' }}</div>
+                        <p class="text-xs text-emerald-100 mt-1">{{ analysis.jam_makan_mulai or '-' }}–{{ analysis.jam_makan_selesai or '-' }}</p>
+                    {% else %}
+                        <div class="text-2xl font-black">Normal</div>
+                        <p class="text-xs text-emerald-100 mt-1">{{ analysis.frekuensi_makan }} sehari</p>
+                    {% endif %}
+                </div>
+                <div class="rounded-3xl bg-white/14 border border-white/20 backdrop-blur p-5">
+                    <p class="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-2">Risiko</p>
+                    <div class="text-3xl font-black">{{ analysis.skor_risiko }}</div>
+                    <p class="text-xs text-emerald-100 mt-1">{{ analysis.kategori_risiko }}</p>
+                </div>
+                <div class="col-span-2 rounded-3xl bg-white/14 border border-white/20 backdrop-blur p-5">
+                    <p class="text-xs font-bold text-emerald-100 uppercase tracking-wider mb-2">Status Diet</p>
+                    {% if active_diet_info %}
+                        <div class="text-xl font-black">{{ active_diet_info.nama }}</div>
+                        <p class="text-xs text-emerald-100 mt-1 leading-relaxed">{{ active_diet_info.ringkas }}</p>
+                    {% else %}
+                        <div class="text-xl font-black">Pola standar</div>
+                        <p class="text-xs text-emerald-100 mt-1">Belum ada diet khusus yang diaktifkan.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if health_score and weekly_insight %}
+    {% set progress_summary = dashboard_progress_summary|default({}) %}
+    {% set score = health_score.score|round|int %}
+    {% set score_bar = 100 if score > 100 else score %}
+    {% set logged_days = health_score.metrics.days_logged|default(progress_summary.days_logged|default(0)) %}
+    {% set adherence_pct = health_score.metrics.avg_adherence|default(progress_summary.avg_adherence|default(0)) %}
+    {% set activity_minutes = health_score.metrics.total_exercise_minutes|default(progress_summary.total_exercise_minutes|default(0)) %}
+    {% set quality_score = health_score.breakdown.food_quality|default(0) %}
+    {% set quality_pct = (quality_score / 15 * 100) if quality_score else 0 %}
+    
+    <section class="fade-up soft-card rounded-[2rem] p-5 md:p-7 mb-8 border border-emerald-100 bg-white/95 relative overflow-hidden">
+        <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-100/70 blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-teal-100/60 blur-3xl pointer-events-none"></div>
+    
+        <div class="relative z-10 grid grid-cols-1 lg:grid-cols-[1.1fr_.9fr] gap-6 items-stretch">
+            <div class="flex flex-col justify-between">
+                <div>
+                    <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1.5 text-[11px] font-black uppercase tracking-[.14em] text-emerald-700 mb-4">
+                        <i class="fas fa-heart-pulse"></i> Health Score Minggu Ini
+                    </div>
+    
+                    <div class="flex flex-col sm:flex-row sm:items-end gap-4">
+                        <div class="flex items-end gap-2">
+                            <span class="text-6xl md:text-7xl font-black tracking-tight text-slate-900 leading-none">{{ score }}</span>
+                            <span class="text-xl md:text-2xl font-black text-slate-400 mb-2">/100</span>
+                        </div>
+                        <div class="sm:mb-2">
+                            {% if score >= 70 %}
+                            <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-2xl text-sm font-black">
+                                <i class="fas fa-circle-check"></i> {{ health_score.status }}
+                            </span>
+                            {% elif score >= 50 %}
+                            <span class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-100 px-4 py-2 rounded-2xl text-sm font-black">
+                                <i class="fas fa-circle-info"></i> {{ health_score.status }}
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100 px-4 py-2 rounded-2xl text-sm font-black">
+                                <i class="fas fa-triangle-exclamation"></i> {{ health_score.status }}
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+    
+                    <div class="mt-5 h-4 rounded-full bg-slate-100 overflow-hidden border border-slate-100">
+                        {% if score >= 70 %}
+                        <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" style="width: {{ score_bar }}%"></div>
+                        {% elif score >= 50 %}
+                        <div class="h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-400" style="width: {{ score_bar }}%"></div>
+                        {% else %}
+                        <div class="h-full rounded-full bg-gradient-to-r from-rose-300 to-orange-400" style="width: {{ score_bar }}%"></div>
+                        {% endif %}
+                    </div>
+    
+                    <p class="text-sm md:text-base font-bold text-slate-600 mt-4 leading-relaxed max-w-3xl">
+                        {{ weekly_insight.message }}
+                    </p>
+    
+                    <p class="text-xs font-semibold text-slate-400 mt-3 leading-relaxed">
+                        {% if logged_days %}
+                            Dihitung dari {{ logged_days }} hari catatan pada minggu berjalan.
+                        {% else %}
+                            Belum ada catatan progress minggu ini. Isi catatan harian agar skor mulai terbaca.
+                        {% endif %}
+                    </p>
+                </div>
+    
+                <div class="flex flex-col sm:flex-row gap-3 mt-6">
+                    <a href="/progress" class="inline-flex justify-center items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black px-5 py-3 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5">
+                        Lihat Detail Progress <span>→</span>
+                    </a>
+                    <a href="/chatbot" class="inline-flex justify-center items-center gap-2 bg-white hover:bg-emerald-50 border border-emerald-100 text-emerald-700 font-black px-5 py-3 rounded-2xl transition-all hover:-translate-y-0.5">
+                        Tanya Dr. Predia
+                    </a>
+                </div>
+            </div>
+    
+            <div class="rounded-[1.75rem] bg-slate-50/85 border border-slate-100 p-5">
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <div>
+                        <p class="text-sm font-black text-slate-900 flex items-center gap-2">
+                            <i class="fas fa-list-check text-emerald-600"></i> Ringkasan Progress
+                        </p>
+                        <p class="text-xs font-bold text-slate-500 mt-1">Detail lengkap ada di halaman Progress.</p>
+                    </div>
+                    {% if week_start and week_end %}
+                    <span class="hidden sm:inline-flex text-[10px] font-black text-slate-500 bg-white border border-slate-100 px-3 py-1.5 rounded-full">
+                        {{ week_start.strftime('%d %b') }} – {{ week_end.strftime('%d %b') }}
+                    </span>
+                    {% endif %}
+                </div>
+    
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wide">Catatan minggu ini</p>
+                        <p class="text-2xl font-black text-slate-900 mt-1">{{ logged_days }}<span class="text-sm text-slate-400">/7 hari</span></p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wide">Meal plan</p>
+                        <p class="text-2xl font-black text-emerald-700 mt-1">{{ adherence_pct|round|int }}%</p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wide">Aktivitas</p>
+                        <p class="text-2xl font-black text-orange-600 mt-1">{{ activity_minutes|round|int }}<span class="text-sm text-slate-400">/150</span></p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-wide">Kualitas makanan</p>
+                        {% if quality_pct >= 85 %}
+                        <p class="text-base font-black text-purple-700 mt-2">Sangat baik</p>
+                        {% elif quality_pct >= 60 %}
+                        <p class="text-base font-black text-purple-700 mt-2">Cukup baik</p>
+                        {% else %}
+                        <p class="text-base font-black text-amber-700 mt-2">Perlu dijaga</p>
+                        {% endif %}
+                    </div>
+                </div>
+    
+                {% if weekly_insight.priorities %}
+                <div class="mt-4 rounded-2xl bg-amber-50 border border-amber-100 p-4">
+                    <p class="text-xs font-black text-amber-800 mb-1">Fokus berikutnya</p>
+                    <p class="text-sm font-bold text-slate-600 leading-relaxed">{{ weekly_insight.priorities[0] }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    {% set diff = analysis.target_kalori - analysis.tdee_mifflin %}
+    {% set total_macro_kal = (analysis.target_karbo * 4) + (analysis.target_protein * 4) + (analysis.target_lemak * 9) %}
+    {% set karbo_pct = ((analysis.target_karbo * 4 / total_macro_kal) * 100) if total_macro_kal else 0 %}
+    {% set protein_pct = ((analysis.target_protein * 4 / total_macro_kal) * 100) if total_macro_kal else 0 %}
+    {% set lemak_pct = ((analysis.target_lemak * 9 / total_macro_kal) * 100) if total_macro_kal else 0 %}
+
+    <!-- SUMMARY CARDS -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5 mb-8">
+        <div class="soft-card lift-card rounded-[1.75rem] p-6 relative overflow-hidden fade-up">
+            <div class="absolute -right-8 -top-8 w-28 h-28 bg-emerald-100 rounded-full blur-2xl"></div>
+            <div class="relative">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl mb-4">⚖️</div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-wider">BMI Anda</p>
+                <div class="text-4xl font-black text-slate-800 mt-1">{{ "%.1f"|format(analysis.bmi) }}</div>
+                <span class="inline-flex mt-3 bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs font-extrabold px-3 py-1 rounded-full">{{ analysis.kategori_bmi }}</span>
+            </div>
+        </div>
+
+        <div class="soft-card lift-card rounded-[1.75rem] p-6 relative overflow-hidden fade-up" style="animation-delay:.04s">
+            <div class="absolute -right-8 -top-8 w-28 h-28 bg-rose-100 rounded-full blur-2xl"></div>
+            <div class="relative">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mb-4">🩸</div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Risiko Diabetes</p>
+                <div class="text-4xl font-black text-slate-800 mt-1">{{ analysis.skor_risiko }}</div>
+                <span class="inline-flex mt-3 bg-rose-50 text-rose-700 border border-rose-100 text-xs font-extrabold px-3 py-1 rounded-full">{{ analysis.kategori_risiko }}</span>
+            </div>
+        </div>
+
+        <div class="soft-card lift-card rounded-[1.75rem] p-6 relative overflow-hidden fade-up" style="animation-delay:.08s">
+            <div class="absolute -right-8 -top-8 w-28 h-28 bg-teal-100 rounded-full blur-2xl"></div>
+            <div class="relative">
+                <div class="w-12 h-12 rounded-2xl bg-teal-50 text-teal-600 flex items-center justify-center text-xl mb-4">🔥</div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Target Kalori</p>
+                <div class="text-4xl font-black text-slate-800 mt-1">{{ "%.0f"|format(analysis.target_kalori) }}</div>
+                <div class="flex flex-wrap gap-2 mt-3">
+                    <span class="bg-teal-50 text-teal-700 border border-teal-100 text-xs font-extrabold px-3 py-1 rounded-full">kkal / hari</span>
+                    {% if diff < 0 %}
+                    <span class="bg-amber-50 text-amber-700 border border-amber-100 text-xs font-extrabold px-3 py-1 rounded-full">Defisit {{ "%.0f"|format(-diff) }}</span>
+                    {% elif diff > 0 %}
+                    <span class="bg-blue-50 text-blue-700 border border-blue-100 text-xs font-extrabold px-3 py-1 rounded-full">Surplus +{{ "%.0f"|format(diff) }}</span>
+                    {% else %}
+                    <span class="bg-slate-50 text-slate-600 border border-slate-100 text-xs font-extrabold px-3 py-1 rounded-full">Sesuai TDEE</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="soft-card lift-card rounded-[1.75rem] p-6 relative overflow-hidden fade-up" style="animation-delay:.12s">
+            <div class="absolute -right-8 -top-8 w-28 h-28 bg-cyan-100 rounded-full blur-2xl"></div>
+            <div class="relative">
+                <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl mb-4">⚡</div>
+                <p class="text-xs font-black text-slate-400 uppercase tracking-wider">TDEE</p>
+                <div class="text-4xl font-black text-slate-800 mt-1">{{ "%.0f"|format(analysis.tdee_mifflin) }}</div>
+                <p class="text-xs text-slate-500 font-semibold mt-3">Estimasi pembakaran energi harian.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTROL CENTER -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-10">
+        <div class="lg:col-span-2 glass-card rounded-[2rem] p-6 md:p-8 fade-up">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-7">
+                <div>
+                    <p class="text-xs font-black text-emerald-600 uppercase tracking-[.18em] mb-2">Nutrition Control Center</p>
+                    <h2 class="text-2xl font-black text-slate-800">Target Makro & Pola Makan</h2>
+                    <p class="text-sm text-slate-500 mt-2 max-w-2xl">Pantau komposisi target harian dan pengaturan diet/pola makan yang sedang aktif.</p>
+                </div>
+                <div class="inline-flex items-center gap-2 bg-white border border-slate-100 rounded-2xl px-4 py-2 text-xs font-extrabold text-slate-600 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 pulse-dot"></span> Live profile
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div class="rounded-3xl bg-slate-50/80 border border-slate-100 p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white text-teal-600 flex items-center justify-center text-xl shadow-sm">⏰</div>
+                        <div>
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-wider mb-1">Pola Waktu Makan</p>
+                            {% if analysis.pola_waktu_makan == 'intermittent_fasting' %}
+                                <h3 class="font-black text-slate-800 text-lg">Intermittent Fasting {{ analysis.pola_puasa or '' }}</h3>
+                                <p class="text-xs text-slate-500 mt-1">Jendela makan: {{ analysis.jam_makan_mulai or '-' }} – {{ analysis.jam_makan_selesai or '-' }}</p>
+                            {% else %}
+                                <h3 class="font-black text-slate-800 text-lg">Makan biasa</h3>
+                                <p class="text-xs text-slate-500 mt-1">Mengikuti waktu makan yang kamu pilih.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="rounded-3xl bg-emerald-50/80 border border-emerald-100 p-5">
+                    <div class="flex items-start gap-4">
+                        <div class="w-12 h-12 rounded-2xl bg-white text-emerald-600 flex items-center justify-center text-xl shadow-sm">🥗</div>
+                        <div class="flex-1">
+                            <p class="text-xs font-black text-emerald-600 uppercase tracking-wider mb-1">Diet Aktif</p>
+                            {% if active_diet_info %}
+                                <h3 class="font-black text-slate-800 text-lg">{{ active_diet_info.nama }}</h3>
+                                <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ active_diet_info.ringkas }}</p>
+                                <div class="flex flex-wrap gap-2 mt-4">
+                                    <a href="/diet/{{ active_diet_info.slug }}" class="text-[11px] bg-white border border-emerald-200 text-emerald-700 font-black px-3 py-2 rounded-xl hover:bg-emerald-50 transition">Lihat Detail</a>
+                                    <form method="post" action="/api/deactivate-diet">
+                                        <button class="text-[11px] bg-white border border-rose-200 text-rose-600 font-black px-3 py-2 rounded-xl hover:bg-rose-50 transition">Nonaktifkan</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <h3 class="font-black text-slate-800 text-lg">Belum memilih diet</h3>
+                                <p class="text-xs text-slate-500 mt-1">Meal plan memakai pola standar berdasarkan target kalori dan risiko.</p>
+                                <a href="/diet" class="inline-flex mt-4 text-[11px] bg-white border border-emerald-200 text-emerald-700 font-black px-3 py-2 rounded-xl hover:bg-emerald-50 transition">Pilih Program</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if analysis.catatan_pola_makan %}
+            <div class="rounded-3xl bg-amber-50/80 border border-amber-100 p-5 mb-8">
+                <div class="flex items-start gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white text-amber-600 flex items-center justify-center shadow-sm">💡</div>
+                    <div>
+                        <h4 class="text-sm font-black text-amber-900 mb-2">Catatan Adaptasi</h4>
+                        <ul class="space-y-1.5">
+                            {% for catatan in analysis.catatan_pola_makan %}
+                            <li class="text-xs text-amber-800 leading-relaxed flex items-start gap-2"><span>•</span><span>{{ catatan }}</span></li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="rounded-3xl bg-white border border-slate-100 p-5 shadow-sm">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Karbohidrat</p>
+                            <h4 class="text-2xl font-black text-slate-800">{{ "%.0f"|format(analysis.target_karbo) }}g</h4>
+                        </div>
+                        <span class="text-xs font-black text-emerald-600">{{ "%.0f"|format(karbo_pct) }}%</span>
+                    </div>
+                    <div class="macro-bar"><div class="macro-fill" data-bar-width="{{ karbo_pct }}" style="width: 0%"></div></div>
+                </div>
+                <div class="rounded-3xl bg-white border border-slate-100 p-5 shadow-sm">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Protein</p>
+                            <h4 class="text-2xl font-black text-slate-800">{{ "%.0f"|format(analysis.target_protein) }}g</h4>
+                        </div>
+                        <span class="text-xs font-black text-emerald-600">{{ "%.0f"|format(protein_pct) }}%</span>
+                    </div>
+                    <div class="macro-bar"><div class="macro-fill" data-bar-width="{{ protein_pct }}" style="width: 0%"></div></div>
+                </div>
+                <div class="rounded-3xl bg-white border border-slate-100 p-5 shadow-sm">
+                    <div class="flex justify-between items-end mb-3">
+                        <div>
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-wider">Lemak</p>
+                            <h4 class="text-2xl font-black text-slate-800">{{ "%.0f"|format(analysis.target_lemak) }}g</h4>
+                        </div>
+                        <span class="text-xs font-black text-emerald-600">{{ "%.0f"|format(lemak_pct) }}%</span>
+                    </div>
+                    <div class="macro-bar"><div class="macro-fill" data-bar-width="{{ lemak_pct }}" style="width: 0%"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <aside class="glass-card rounded-[2rem] p-6 md:p-7 fade-up flex flex-col overflow-hidden relative">
+            <div class="absolute -top-20 -right-20 w-44 h-44 bg-emerald-200/60 rounded-full blur-3xl"></div>
+            <div class="relative flex-1 flex flex-col">
+                <div class="rounded-[1.75rem] bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white text-center overflow-hidden relative mb-5">
+                    <div class="absolute inset-0 bg-white/10 shimmer"></div>
+                    <div class="relative">
+                        <img src="/static/WajahMaskot.png" alt="Dr. Predia AI" class="w-36 h-36 object-contain mx-auto drop-shadow-2xl" onerror="this.src='https://placehold.co/144x144/10b981/ffffff?text=AI'">
+                        <h3 class="text-xl font-black mt-2">Dr. Predia AI</h3>
+                        <p class="text-sm text-emerald-50 mt-2 leading-relaxed">Tanya menu kamu, diet aktif, kalori slot makan, atau alternatif makanan yang sesuai.</p>
+                    </div>
+                </div>
+                <a href="/chatbot" class="w-full inline-flex justify-center items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-black py-3.5 px-5 rounded-2xl shadow-lg transition-all hover:-translate-y-0.5">
+                    Mulai Chat <span>→</span>
+                </a>
+                <div class="grid grid-cols-2 gap-3 mt-5">
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Frekuensi</p>
+                        <p class="font-black text-slate-800 mt-1">{{ analysis.frekuensi_makan }}</p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4">
+                        <p class="text-[10px] font-black text-slate-400 uppercase">Slot Makan</p>
+                        <p class="font-black text-slate-800 mt-1">{{ analysis.waktu_makan | length }}</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </section>
+
+    <!-- MEAL PLAN -->
+    {% if analysis.meal_plan %}
+    <section class="fade-up">
+        <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-7">
+            <div>
+                <p class="text-xs font-black text-emerald-600 uppercase tracking-[.18em] mb-2">Today's Meal Plan</p>
+                <h2 class="text-3xl font-black text-slate-800 flex items-center gap-3">🍽️ Rencana Makan Hari Ini</h2>
+                <p class="text-slate-500 text-sm mt-2 max-w-3xl">
+                    Rekomendasi {{ analysis.frekuensi_makan }} sehari — disesuaikan dengan target <b class="text-emerald-700">{{ "%.0f"|format(analysis.target_kalori) }} kkal</b>, risiko, pantangan, dan preferensi diet aktif.
+                    {% if analysis.pola_waktu_makan == 'intermittent_fasting' %}
+                    <br><span class="text-teal-700 font-black">Intermittent Fasting {{ analysis.pola_puasa or '' }} · {{ analysis.jam_makan_mulai or '-' }}–{{ analysis.jam_makan_selesai or '-' }}</span>
+                    {% endif %}
+                    {% if active_diet_info %}
+                    <br><span class="text-emerald-700 font-black">Diet aktif: {{ active_diet_info.nama }}</span>
+                    {% endif %}
+                </p>
+            </div>
+            <button id="btn-regenerate" onclick="regenerateMealPlan()" class="group inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-emerald-600 text-white px-5 py-3 rounded-2xl font-black shadow-xl shadow-slate-900/10 transition-all hover:-translate-y-0.5">
+                <svg class="group-hover:rotate-180 transition-transform duration-500" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Ganti Menu
+            </button>
+        </div>
+
+        <div class="space-y-9" id="meal-slots-container">
+            {% for slot in analysis.meal_plan %}
+            {% set waktu_icons = {'Pagi': '🌅', 'Siang': '☀️', 'Sore': '🌤️', 'Malam': '🌙', 'Camilan': '🥜'} %}
+            {% set slot_title = slot.waktu if slot.waktu.startswith('Makan') or slot.waktu == 'Camilan' else 'Makan ' ~ slot.waktu %}
+            {% set slot_pct_raw = (slot.total_kalori_slot / slot.target_kalori_slot * 100) if slot.target_kalori_slot else 0 %}
+            {% set slot_pct = 100 if slot_pct_raw > 100 else slot_pct_raw %}
+            <article class="glass-card rounded-[2rem] p-5 md:p-6 lift-card">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-5">
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 flex items-center justify-center text-2xl shadow-sm">
+                            {{ waktu_icons.get(slot.waktu, '🍽️') }}
+                        </div>
+                        <div>
+                            <h3 class="text-xl md:text-2xl font-black text-slate-800 flex flex-wrap items-center gap-2">
+                                {{ slot_title }}
+                                {% if slot.jam %}
+                                <span class="text-xs bg-teal-50 text-teal-700 border border-teal-100 px-3 py-1 rounded-full font-black">{{ slot.jam }}</span>
+                                {% endif %}
+                            </h3>
+                            <p class="text-xs text-slate-500 font-semibold mt-1">{{ slot['items'] | length }} menu · target sekitar {{ slot.target_kalori_slot }} kkal</p>
+                        </div>
+                    </div>
+                    <div class="min-w-[210px]">
+                        <div class="flex justify-between text-xs font-black text-slate-500 mb-2">
+                            <span>Aktual</span>
+                            <span class="text-emerald-700">{{ slot.total_kalori_slot }} kkal</span>
+                        </div>
+                        <div class="h-2.5 rounded-full bg-slate-200/70 overflow-hidden">
+                            <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" data-bar-width="{{ slot_pct }}" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                    {% for item in slot['items'] %}
+                    <div class="rounded-[1.65rem] bg-white border border-slate-100 overflow-hidden shadow-sm lift-card flex flex-col">
+                        <div class="relative aspect-[4/3] bg-slate-50 overflow-hidden">
+                            {% if item.gambar %}
+                                <img src="{{ item.gambar }}" alt="{{ item.nama }}" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" onerror="this.parentElement.innerHTML='<div class=\'absolute inset-0 flex items-center justify-center text-5xl text-slate-300 bg-slate-50\'>🍽️</div>'">
+                            {% else %}
+                                <div class="absolute inset-0 flex items-center justify-center text-5xl text-slate-300 bg-slate-50">
+                                    {% if item.kategori == 'Buah' %}🍎
+                                    {% elif item.kategori == 'Sayur' %}🥦
+                                    {% elif item.kategori == 'Lauk' %}🍗
+                                    {% else %}🍚{% endif %}
+                                </div>
+                            {% endif %}
+                            <div class="absolute inset-0 meal-image-overlay"></div>
+                            <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+                                <span class="bg-slate-900/80 backdrop-blur text-white text-[10px] font-black px-3 py-1 rounded-full">{{ item.slot_label }}</span>
+                            </div>
+                            <span class="absolute bottom-3 right-3 bg-white/95 text-amber-600 border border-white text-[11px] font-black px-3 py-1.5 rounded-full shadow-sm">{{ "%.0f"|format(item.kalori) }} kkal</span>
+                        </div>
+                        <div class="p-5 flex flex-col flex-1">
+                            <h4 class="text-base font-black text-slate-800 leading-tight mb-1">{{ item.nama }}</h4>
+                            <p class="text-xs text-slate-500 font-bold mb-4">{{ item.porsi }}</p>
+                            <div class="grid grid-cols-3 gap-2 mt-auto">
+                                <div class="rounded-2xl bg-sky-50 border border-sky-100 p-2 text-center">
+                                    <p class="text-[9px] font-black text-sky-500 uppercase">Karbo</p>
+                                    <p class="text-xs font-black text-sky-700">{{ "%.0f"|format(item.karbo) }}g</p>
+                                </div>
+                                <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-2 text-center">
+                                    <p class="text-[9px] font-black text-emerald-500 uppercase">Protein</p>
+                                    <p class="text-xs font-black text-emerald-700">{{ "%.0f"|format(item.protein) }}g</p>
+                                </div>
+                                <div class="rounded-2xl bg-pink-50 border border-pink-100 p-2 text-center">
+                                    <p class="text-[9px] font-black text-pink-500 uppercase">Lemak</p>
+                                    <p class="text-xs font-black text-pink-700">{{ "%.0f"|format(item.lemak) }}g</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+
+        <div class="mt-10 glass-card rounded-[1.75rem] p-5 text-center">
+            <p class="text-xs text-slate-500 font-semibold leading-relaxed">
+                ⚠️ Rekomendasi ini bersifat informatif dan memakai data porsi dari dataset. Konsultasikan dengan ahli gizi atau dokter untuk panduan personal yang lebih akurat.
+            </p>
+        </div>
+    </section>
+    {% endif %}
+</div>
+
+<script>
+
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('[data-bar-width]').forEach(function (bar) {
+        const raw = bar.getAttribute('data-bar-width') || '0';
+        const value = Number(String(raw).replace(',', '.'));
+        const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
+        bar.style.width = safeValue + '%';
+    });
+});
+
+
+async function regenerateMealPlan() {
+    const btn = document.getElementById('btn-regenerate');
+    const container = document.getElementById('meal-slots-container');
+    if (!btn || !container) return;
+
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.classList.add('opacity-80', 'cursor-not-allowed');
+    btn.innerHTML = '<span class="inline-block spin-soft">⟳</span> Mengacak menu...';
+    container.style.opacity = '0.45';
+    container.style.transform = 'scale(.995)';
+    container.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+    try {
+        const res = await fetch('/api/regenerate-meal-plan', { method: 'POST', credentials: 'same-origin' });
+        const data = await res.json();
+        if (data.success) window.location.reload();
+        else alert('Gagal memuat ulang menu. Coba lagi.');
+    } catch (e) {
+        alert('Terjadi kesalahan jaringan.');
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-80', 'cursor-not-allowed');
+        btn.innerHTML = original;
+        container.style.opacity = '1';
+        container.style.transform = 'scale(1)';
+    }
+}
+</script>
+{% endblock %}

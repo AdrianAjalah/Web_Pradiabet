@@ -1,0 +1,57 @@
+{#
+Tempel blok ini di progress_tracker.html setelah kartu ringkasan mingguan.
+Variabel disediakan oleh app/progress_tracker.py refactor:
+- health_score
+- weekly_insight
+#}
+{% if health_score and weekly_insight %}
+<section class="soft-card rounded-[2rem] p-6 mb-8 border border-emerald-100 bg-emerald-50/45">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+        <div>
+            <p class="mini-label text-emerald-700">Health Score Minggu Ini</p>
+            <h2 class="text-3xl md:text-4xl font-black text-slate-900 mt-2">
+                {{ health_score.score|round|int }}<span class="text-base text-slate-400">/100</span>
+                <span class="text-lg md:text-xl text-emerald-700 ml-2">{{ health_score.status }}</span>
+            </h2>
+            <p class="text-sm font-bold text-slate-600 mt-2 max-w-3xl">{{ weekly_insight.message }}</p>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 min-w-[280px]">
+            <div class="rounded-2xl bg-white border border-emerald-100 p-3 text-center">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Meal Plan</p>
+                <p class="text-lg font-black text-emerald-700">{{ health_score.breakdown.meal_plan|round(1) }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-emerald-100 p-3 text-center">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Aktivitas</p>
+                <p class="text-lg font-black text-orange-600">{{ health_score.breakdown.activity|round(1) }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-emerald-100 p-3 text-center">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Kalori</p>
+                <p class="text-lg font-black text-blue-700">{{ health_score.breakdown.calorie_balance|round(1) }}</p>
+            </div>
+            <div class="rounded-2xl bg-white border border-emerald-100 p-3 text-center">
+                <p class="text-[10px] font-black text-slate-400 uppercase">Kualitas</p>
+                <p class="text-lg font-black text-purple-700">{{ health_score.breakdown.food_quality|round(1) }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5">
+        <div class="rounded-3xl bg-white/85 border border-emerald-100 p-4">
+            <p class="text-sm font-black text-emerald-800 mb-3">Yang sudah baik</p>
+            <ul class="space-y-2">
+                {% for item in weekly_insight.positives %}
+                <li class="text-sm font-bold text-slate-600 leading-relaxed flex gap-2"><span class="text-emerald-500">✓</span><span>{{ item }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="rounded-3xl bg-white/85 border border-amber-100 p-4">
+            <p class="text-sm font-black text-amber-800 mb-3">Prioritas perbaikan</p>
+            <ul class="space-y-2">
+                {% for item in weekly_insight.priorities %}
+                <li class="text-sm font-bold text-slate-600 leading-relaxed flex gap-2"><span class="text-amber-500">•</span><span>{{ item }}</span></li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</section>
+{% endif %}

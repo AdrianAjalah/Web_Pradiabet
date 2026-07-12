@@ -1,0 +1,772 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    body {
+        background:
+            radial-gradient(circle at top left, rgba(16,185,129,.16), transparent 34rem),
+            radial-gradient(circle at 90% 12%, rgba(20,184,166,.12), transparent 28rem),
+            linear-gradient(135deg, #ecfdf5 0%, #f8fafc 50%, #f0fdfa 100%);
+    }
+    .glass-card { background: rgba(255,255,255,.84); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border: 1px solid rgba(255,255,255,.74); box-shadow: 0 20px 60px rgba(15, 23, 42, .08); }
+    .soft-card { background: rgba(255,255,255,.95); border: 1px solid rgba(226, 232, 240, .9); box-shadow: 0 14px 38px rgba(15, 23, 42, .055); }
+    .mini-label { font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .14em; color: #64748b; }
+    .progress-input { width: 100%; border-radius: 1rem; border: 1px solid #dbe4ee; padding: .85rem 1rem; outline: none; background: white; font-weight: 700; color: #334155; }
+    .progress-input:focus { border-color: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,.12); }
+    .meal-check:checked + div { border-color: #10b981; background: #ecfdf5; box-shadow: 0 10px 24px rgba(16,185,129,.12); }
+    .disabled-area { opacity: .58; pointer-events: none; }
+    .fade-up { animation: fadeUp .45s ease both; }
+    @keyframes fadeUp { from { opacity:0; transform: translateY(12px); } to { opacity:1; transform: translateY(0); } }
+</style>
+
+<script id="activities-data" type="application/json">{{ activities|tojson }}</script>
+<script id="chart-data" type="application/json">{{ chart_data|tojson }}</script>
+<script id="saved-db-foods-data" type="application/json">{{ saved_db_foods_json|tojson }}</script>
+<script id="initial-activity-data" type="application/json">{{ {
+    'activity_name': selected_log.activity_name if selected_log else '',
+    'activity_type': selected_log.activity_type if selected_log else ''
+}|tojson }}</script>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-10 w-full">
+    <section class="glass-card rounded-[2rem] p-6 md:p-8 mb-8 overflow-hidden relative">
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+            <div>
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-black uppercase tracking-[.16em] mb-4">
+                    <i class="fas fa-chart-line"></i> Progress Mingguan
+                </div>
+                <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Pantau konsistensi makan dan aktivitasmu</h1>
+                <p class="text-slate-600 font-semibold mt-3 max-w-3xl leading-relaxed">
+                    Catat makanan dan aktivitas harian, lalu sistem membantu melihat apakah asupanmu sudah sesuai target, seimbang dengan kalori terbakar, dan tetap selaras dengan pola diet yang sedang dijalani.
+                </p>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 min-w-[320px] lg:min-w-[540px]">
+                <div class="soft-card rounded-3xl p-5">
+                    <p class="mini-label mb-2">Target makan harian</p>
+                    <p class="text-3xl font-black text-emerald-700">{{ analysis.target_kalori|round|int }} <span class="text-base text-slate-400">kkal</span></p>
+                    <p class="text-xs font-bold text-slate-500 mt-1">Acuan batas kalori makan dari profil kesehatanmu.</p>
+                </div>
+                <div class="soft-card rounded-3xl p-5">
+                    <p class="mini-label mb-2">Kalori terbakar hari ini</p>
+                    <p class="text-3xl font-black text-orange-600">{{ selected_calories_out|round|int }} <span class="text-base text-slate-400">kkal</span></p>
+                    <p class="text-xs font-bold text-slate-500 mt-1">
+                        Dasar {{ baseline_calories_out|round|int }} kkal + aktivitas {{ selected_activity_calories|round|int }} kkal.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {% if diet_status_message %}
+    <div class="soft-card rounded-[1.5rem] p-5 mb-6 border border-emerald-100 bg-emerald-50/60">
+        <div class="flex gap-3 items-start">
+            <div class="w-9 h-9 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i class="fas fa-leaf"></i></div>
+            <div>
+                <p class="text-sm font-black text-emerald-800">Pengingat pola makan</p>
+                <p class="text-sm font-bold text-emerald-700 mt-1">{{ diet_status_message }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if health_score and weekly_insight %}
+{% set logged_days = summary.logged_days|default(summary.days_logged|default(0)) %}
+{% set adherence_pct = summary.avg_adherence|default(0) %}
+{% set activity_minutes = summary.total_exercise_minutes|default(0) %}
+{% set calorie_score = health_score.breakdown.calorie_balance|default(0) %}
+{% set calorie_pct = (calorie_score / 25 * 100) if calorie_score else 0 %}
+{% set quality_score = health_score.breakdown.food_quality|default(0) %}
+{% set quality_pct = (quality_score / 15 * 100) if quality_score else 0 %}
+{% set score = health_score.score|round|int %}
+{% set score_bar = 100 if score > 100 else score %}
+
+<section class="soft-card rounded-[2.25rem] p-5 md:p-7 mb-8 border border-emerald-100 bg-white/95 overflow-hidden relative">
+    <div class="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-emerald-100/70 blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-28 -left-28 w-72 h-72 rounded-full bg-teal-100/60 blur-3xl pointer-events-none"></div>
+
+    <div class="relative z-10">
+        <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-7">
+            <div class="flex-1">
+                <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 border border-emerald-100 px-3 py-1.5 text-[11px] font-black uppercase tracking-[.14em] text-emerald-700 mb-4">
+                    <i class="fas fa-heart-pulse"></i> Health Score Minggu Ini
+                </div>
+
+                <div class="flex flex-col md:flex-row md:items-end gap-4">
+                    <div class="flex items-end gap-2">
+                        <span class="text-6xl md:text-7xl font-black tracking-tight text-slate-900 leading-none">{{ score }}</span>
+                        <span class="text-xl md:text-2xl font-black text-slate-400 mb-2">/100</span>
+                    </div>
+                    <div class="mb-2">
+                        {% if score >= 70 %}
+                        <span class="inline-flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-100 px-4 py-2 rounded-2xl text-sm font-black">
+                            <i class="fas fa-circle-check"></i> {{ health_score.status }}
+                        </span>
+                        {% elif score >= 50 %}
+                        <span class="inline-flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-100 px-4 py-2 rounded-2xl text-sm font-black">
+                            <i class="fas fa-circle-info"></i> {{ health_score.status }}
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-100 px-4 py-2 rounded-2xl text-sm font-black">
+                            <i class="fas fa-triangle-exclamation"></i> {{ health_score.status }}
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mt-5 h-4 rounded-full bg-slate-100 overflow-hidden border border-slate-100">
+                    {% if score >= 70 %}
+                    <div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-500" style="width: {{ score_bar }}%"></div>
+                    {% elif score >= 50 %}
+                    <div class="h-full rounded-full bg-gradient-to-r from-amber-300 to-orange-400" style="width: {{ score_bar }}%"></div>
+                    {% else %}
+                    <div class="h-full rounded-full bg-gradient-to-r from-rose-300 to-orange-400" style="width: {{ score_bar }}%"></div>
+                    {% endif %}
+                </div>
+
+                <p class="text-sm md:text-base font-bold text-slate-600 mt-4 leading-relaxed max-w-4xl">
+                    {{ weekly_insight.message }}
+                </p>
+
+                <div class="mt-4 rounded-3xl bg-slate-50 border border-slate-100 p-4">
+                    <p class="text-sm font-black text-slate-800 flex items-center gap-2">
+                        <i class="fas fa-calculator text-emerald-600"></i> Cara membaca skor
+                    </p>
+                    <p class="text-xs md:text-sm font-semibold text-slate-500 mt-2 leading-relaxed">
+                        {% if logged_days %}
+                            Skor ini dihitung dari <b class="text-slate-700">{{ logged_days }} hari</b> yang sudah dicatat pada minggu berjalan. Semakin rutin catatan harian diisi, hasilnya semakin akurat.
+                        {% else %}
+                            Skor ini dihitung dari catatan yang sudah tersimpan pada minggu berjalan. Semakin rutin catatan harian diisi, hasilnya semakin akurat.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="xl:w-[390px] rounded-[2rem] bg-slate-50 border border-slate-100 p-5">
+                <p class="text-sm font-black text-slate-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-list-check text-emerald-600"></i> Indikator utama
+                </p>
+                <div class="space-y-3">
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Meal plan</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Seberapa sering menu rekomendasi dipilih</p>
+                        </div>
+                        <p class="text-xl font-black text-emerald-700 shrink-0">{{ adherence_pct|round|int }}%</p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Aktivitas</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Target aktivitas mingguan</p>
+                        </div>
+                        <p class="text-xl font-black text-orange-600 shrink-0">{{ activity_minutes|round|int }}/150</p>
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Kalori</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Kedekatan asupan dengan target harian</p>
+                        </div>
+                        {% if calorie_pct >= 85 %}
+                        <p class="text-base font-black text-blue-700 shrink-0">Stabil</p>
+                        {% elif calorie_pct >= 60 %}
+                        <p class="text-base font-black text-blue-700 shrink-0">Cukup</p>
+                        {% else %}
+                        <p class="text-base font-black text-amber-700 shrink-0">Belum stabil</p>
+                        {% endif %}
+                    </div>
+                    <div class="rounded-2xl bg-white border border-slate-100 p-4 flex items-center justify-between gap-4">
+                        <div>
+                            <p class="text-sm font-black text-slate-800">Kualitas makanan</p>
+                            <p class="text-xs font-bold text-slate-500 mt-1">Kesesuaian pilihan makanan dengan rekomendasi</p>
+                        </div>
+                        {% if quality_pct >= 85 %}
+                        <p class="text-base font-black text-purple-700 shrink-0">Sangat baik</p>
+                        {% elif quality_pct >= 60 %}
+                        <p class="text-base font-black text-purple-700 shrink-0">Cukup baik</p>
+                        {% else %}
+                        <p class="text-base font-black text-amber-700 shrink-0">Perlu dijaga</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <p class="text-[11px] font-bold text-slate-400 mt-4 leading-relaxed">
+                    Rincian bobot internal tidak ditampilkan agar user fokus pada tindakan yang perlu dilakukan.
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+            <div class="rounded-[1.75rem] bg-emerald-50/75 border border-emerald-100 p-5">
+                <p class="text-sm font-black text-emerald-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-thumbs-up"></i> Yang sudah baik
+                </p>
+                <ul class="space-y-2">
+                    {% for item in weekly_insight.positives %}
+                    <li class="text-sm font-bold text-slate-600 leading-relaxed flex gap-2">
+                        <span class="text-emerald-500 mt-0.5">✓</span><span>{{ item }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="rounded-[1.75rem] bg-amber-50/80 border border-amber-100 p-5">
+                <p class="text-sm font-black text-amber-800 mb-3 flex items-center gap-2">
+                    <i class="fas fa-bullseye"></i> Fokus berikutnya
+                </p>
+                <ul class="space-y-2">
+                    {% for item in weekly_insight.priorities %}
+                    <li class="text-sm font-bold text-slate-600 leading-relaxed flex gap-2">
+                        <span class="text-amber-500 mt-0.5">•</span><span>{{ item }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+{% endif %}
+    <div class="mb-5">
+        <p class="mini-label">Ringkasan Pendukung</p>
+        <p class="text-sm font-semibold text-slate-500 mt-1">Angka di bawah ini hanya pelengkap. Penilaian utama ada di Health Score Minggu Ini.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="soft-card rounded-3xl p-5">
+            <p class="mini-label">Rata-rata dimakan</p>
+            <p class="text-3xl font-black text-blue-700 mt-2">{{ summary.avg_actual_kalori|round|int }}</p>
+            <p class="text-sm font-bold text-slate-500 mt-1">kkal/hari dari catatan minggu ini</p>
+        </div>
+        <div class="soft-card rounded-3xl p-5">
+            <p class="mini-label">Total energi keluar</p>
+            <p class="text-3xl font-black text-orange-600 mt-2">{{ summary.total_calories_out|round|int }}</p>
+            <p class="text-sm font-bold text-slate-500 mt-1">kkal/minggu, termasuk aktivitas</p>
+        </div>
+        <div class="soft-card rounded-3xl p-5">
+            <p class="mini-label">Estimasi berat</p>
+            <p class="text-2xl font-black text-purple-700 mt-2">{{ summary.estimated_change_label }}</p>
+            <p class="text-sm font-bold text-slate-500 mt-1">{{ summary.estimated_change_text }}</p>
+        </div>
+    </div>
+
+
+    <div class="grid grid-cols-1 xl:grid-cols-[1.05fr_.95fr] gap-8">
+        <form method="post" action="/progress/log" class="soft-card rounded-[2rem] p-6 md:p-7">
+            <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+                <div>
+                    <p class="mini-label">Catatan harian</p>
+                    <h2 class="text-2xl font-black text-slate-900 mt-1">Catat makanan dan aktivitas</h2>
+                    <p class="text-sm font-semibold text-slate-500 mt-1">Pilih tanggal melalui kalender, lalu isi makanan dan aktivitas pada tanggal tersebut.</p>
+                </div>
+                <div class="w-full md:w-[220px]">
+                    <label class="mini-label block mb-2" for="tanggalLog">Tanggal catatan</label>
+                    <input id="tanggalLog" type="date" name="tanggal" value="{{ selected_date_iso }}" min="{{ min_log_date_iso }}" max="{{ today_iso }}" class="progress-input">
+                    <p class="text-[11px] font-bold text-slate-400 mt-2">Bisa isi hari ini sampai 7 hari terakhir. Tanggal masa depan tidak dapat dipilih.</p>
+                </div>
+            </div>
+
+            <div class="rounded-3xl {% if can_edit_selected_date %}bg-emerald-50 border-emerald-100 text-emerald-700{% else %}bg-slate-50 border-slate-100 text-slate-500{% endif %} border p-4 mb-6">
+                <p class="text-sm font-black">Status pengisian</p>
+                <p class="text-xs font-bold mt-1">{{ edit_window_note }}</p>
+            </div>
+
+            <div class="mb-7 {% if not can_edit_selected_date %}disabled-area{% endif %}">
+                <p class="mini-label mb-3">Makanan dari meal plan</p>
+                {% if meal_items %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {% for item in meal_items %}
+                    <label class="block cursor-pointer">
+                        <input type="checkbox" class="meal-check hidden meal-item-check" name="selected_meal_items" value="{{ item.id }}" {% if item.checked %}checked{% endif %} {% if not can_edit_selected_date %}disabled{% endif %}>
+                        <div class="rounded-3xl border-2 border-slate-100 bg-white p-4 transition-all h-full">
+                            <div class="flex items-start justify-between gap-3">
+                                <div>
+                                    <p class="text-[11px] font-black uppercase tracking-wide text-emerald-600">{{ item.meal_label }}</p>
+                                    <h3 class="font-black text-slate-800 mt-1">{{ item.nama }}</h3>
+                                    <p class="text-xs font-bold text-slate-400 mt-1">Karbo {{ item.karbo|round(1) }}g · Protein {{ item.protein|round(1) }}g · Lemak {{ item.lemak|round(1) }}g</p>
+                                </div>
+                                <span class="text-xs font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full shrink-0">{{ item.kalori|round|int }} kkal</span>
+                            </div>
+                            <div class="mt-3 inline-flex text-[11px] font-black px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100">
+                                Rekomendasi meal plan
+                            </div>
+                        </div>
+                    </label>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="rounded-3xl bg-amber-50 text-amber-800 p-4 font-bold">Meal plan belum tersedia. Isi kuisioner atau generate meal plan dulu.</div>
+                {% endif %}
+            </div>
+
+            <div class="soft-card rounded-[1.5rem] p-5 mb-7 {% if not can_edit_selected_date %}disabled-area{% endif %}">
+                <div class="mb-4">
+                    <label class="mini-label block mb-2">Tambahkan makanan lain</label>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input id="foodSearchInput" class="progress-input" type="text" placeholder="Contoh: nasi merah, ayam, roti, susu" {% if not can_edit_selected_date %}disabled{% endif %}>
+                        <button type="button" id="foodSearchBtn" class="px-5 py-3 rounded-2xl bg-slate-900 text-white font-black hover:bg-slate-800 transition" {% if not can_edit_selected_date %}disabled{% endif %}>Cari</button>
+                    </div>
+                    <p class="text-xs font-bold text-slate-400 mt-2">Sistem akan menandai makanan yang sesuai atau kurang disarankan.</p>
+                </div>
+                <div id="foodSearchResults" class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4"></div>
+                <div id="selectedFoods" class="space-y-2"></div>
+                <input type="hidden" name="selected_database_food_ids" id="selectedDatabaseFoodIds" value="[]">
+            </div>
+
+            <div class="rounded-3xl bg-orange-50 border border-orange-100 p-4 mb-4">
+                <p class="text-sm font-black text-orange-800">Kalori terbakar harian</p>
+                <p class="text-xs font-bold text-orange-700 mt-1">Dihitung dari pembakaran dasar tubuh ditambah aktivitas yang kamu catat pada tanggal ini.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-7 {% if not can_edit_selected_date %}disabled-area{% endif %}">
+                <div>
+                    <label class="mini-label block mb-2">Aktivitas</label>
+                    <select class="progress-input" id="activityName" name="activity_name" {% if not can_edit_selected_date %}disabled{% endif %}>
+                        <option value="">Tidak olahraga</option>
+                        {% for act in activities %}
+                        <option value="{{ act.nama }}" {% if selected_log and selected_log.activity_name == act.nama %}selected{% endif %}>{{ act.nama }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="mini-label block mb-2">Tipe / Intensitas</label>
+                    <select class="progress-input" id="activityType" name="activity_type" {% if not can_edit_selected_date %}disabled{% endif %}>
+                        <option value="">Pilih aktivitas dulu</option>
+                    </select>
+                    <p id="metPreview" class="text-xs font-black text-emerald-600 mt-2"></p>
+                </div>
+                <div>
+                    <label class="mini-label block mb-2">Durasi menit</label>
+                    <input class="progress-input" type="number" step="1" min="0" name="duration_minutes" placeholder="Contoh 30" value="{% if selected_log %}{{ selected_log.duration_minutes|round|int }}{% endif %}" {% if not can_edit_selected_date %}disabled{% endif %}>
+                </div>
+            </div>
+
+            {% if selected_log %}
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-7">
+                <div class="rounded-3xl bg-blue-50 border border-blue-100 p-4">
+                    <p class="text-sm font-black text-blue-800">Ringkasan tanggal ini</p>
+                    <p class="text-sm font-bold text-blue-700 mt-1">Dimakan {{ selected_actual_kalori|round|int }} kkal · Terbakar {{ selected_calories_out|round|int }} kkal</p>
+                    <p class="text-xs font-bold text-blue-600 mt-1">{% if selected_deficit >= 0 %}Defisit {{ selected_deficit|round|int }} kkal{% else %}Surplus {{ (selected_deficit * -1)|round|int }} kkal{% endif %}</p>
+                </div>
+                <div class="rounded-3xl bg-purple-50 border border-purple-100 p-4">
+                    <p class="text-sm font-black text-purple-800">Estimasi perubahan berat</p>
+                    <p class="text-sm font-bold text-purple-700 mt-1">{{ selected_weight_change_text }}</p>
+                    <p class="text-xs font-bold text-purple-600 mt-1">Estimasi ini hanya pemantauan, bukan hasil pasti.</p>
+                </div>
+            </div>
+            {% endif %}
+
+            {% if macro_messages %}
+            <div class="rounded-3xl bg-amber-50 border border-amber-100 p-4 mb-7">
+                <p class="text-sm font-black text-amber-800">Catatan target harian</p>
+                <div class="space-y-2 mt-2">
+                    {% for message in macro_messages %}
+                    <p class="text-xs font-bold text-amber-700"><i class="fas fa-circle-info mr-1"></i>{{ message }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if can_edit_selected_date %}
+            <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-2xl py-4 font-black shadow-lg shadow-emerald-500/20 transition-all hover:-translate-y-0.5">
+                Simpan Catatan Harian
+            </button>
+            {% else %}
+            <div class="w-full rounded-2xl py-4 text-center font-black bg-slate-100 text-slate-400">Catatan lama hanya bisa dilihat</div>
+            {% endif %}
+        </form>
+
+        <div class="space-y-6">
+            <div class="soft-card rounded-[2rem] p-6">
+                <div class="mb-5">
+                    <p class="mini-label">Grafik minggu ini</p>
+                    <h2 class="text-xl font-black text-slate-900">{{ week_start.strftime('%d %b') }} – {{ week_end.strftime('%d %b %Y') }}</h2>
+                    <p class="text-xs font-bold text-slate-500 mt-1">Grafik mengikuti minggu dari tanggal yang sedang dilihat.</p>
+                </div>
+                <canvas id="progressChart" width="700" height="300" class="w-full rounded-3xl bg-slate-50 border border-slate-100"></canvas>
+                <div class="flex flex-wrap gap-3 mt-4 text-xs font-black">
+                    <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-500"></span>Kalori dimakan</span>
+                    <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-orange-500"></span>Kalori terbakar</span>
+                    <span class="inline-flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-slate-400"></span>Target makan</span>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-100">
+                    <p class="mini-label mb-2">Estimasi berat badan</p>
+                    <canvas id="weightChart" width="700" height="220" class="w-full rounded-3xl bg-slate-50 border border-slate-100"></canvas>
+                    <p class="text-[11px] font-bold text-slate-400 mt-3">Estimasi dihitung dari akumulasi defisit/surplus kalori mingguan, bukan pengukuran timbangan langsung.</p>
+                </div>
+            </div>
+
+            <div class="soft-card rounded-[2rem] p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+                    <div>
+                        <p class="mini-label">Log harian</p>
+                        <h2 class="text-xl font-black text-slate-900 mt-1">{{ selected_date.strftime('%A, %d %B %Y') }}</h2>
+                        <p class="text-xs font-bold text-slate-500 mt-1">Lihat catatan makanan dan aktivitas berdasarkan tanggal.</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="/progress?tanggal={{ previous_date }}" class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700" title="Hari sebelumnya"><i class="fas fa-chevron-left"></i></a>
+                        {% if next_date %}
+                        <a href="/progress?tanggal={{ next_date }}" class="w-10 h-10 rounded-2xl bg-slate-100 text-slate-600 flex items-center justify-center hover:bg-emerald-100 hover:text-emerald-700" title="Hari berikutnya"><i class="fas fa-chevron-right"></i></a>
+                        {% else %}
+                        <span class="w-10 h-10 rounded-2xl bg-slate-50 text-slate-300 flex items-center justify-center" title="Tidak bisa melihat tanggal masa depan"><i class="fas fa-chevron-right"></i></span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="rounded-3xl bg-slate-50 border border-slate-100 p-4 mb-4">
+                    <p class="text-sm font-black text-slate-800">Aktivitas hari sebelumnya</p>
+                    {% if previous_log and previous_log.activity_name %}
+                    <p class="text-sm font-bold text-slate-600 mt-1">{{ previous_log.activity_name }}{% if previous_log.activity_type %} — {{ previous_log.activity_type }}{% endif %}, {{ previous_log.duration_minutes|round|int }} menit.</p>
+                    {% else %}
+                    <p class="text-sm font-bold text-slate-500 mt-1">Belum ada aktivitas yang dicatat pada hari sebelumnya.</p>
+                    {% endif %}
+                </div>
+
+                {% if selected_log %}
+                <div class="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+                    <p class="text-sm font-black text-slate-900">Ringkasan catatan</p>
+                    <p class="text-xs font-bold text-slate-500 mt-1">
+                        {{ selected_log.actual_kalori|round|int }} kkal dimakan · {{ selected_log.calories_out|round|int }} kkal terbakar ·
+                        {% if selected_log.deficit_calories >= 0 %}defisit {{ selected_log.deficit_calories|round|int }} kkal{% else %}surplus {{ (selected_log.deficit_calories * -1)|round|int }} kkal{% endif %}
+                    </p>
+                    {% if selected_log.activity_name %}
+                    <p class="text-xs font-bold text-slate-500 mt-1">Aktivitas: {{ selected_log.activity_name }}{% if selected_log.activity_type %} — {{ selected_log.activity_type }}{% endif %}, {{ selected_log.duration_minutes|round|int }} menit.</p>
+                    {% endif %}
+                    {% if can_delete_selected_date %}
+                    <form class="mt-3" method="post" action="/progress/delete/{{ selected_log.id }}" onsubmit="return confirm('Hapus catatan hari ini?')">
+                        <button class="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-black hover:bg-red-100">Hapus catatan hari ini</button>
+                    </form>
+                    {% elif selected_log and not can_edit_selected_date %}
+                    <p class="text-[11px] font-bold text-slate-400 mt-3">Catatan tanggal sebelumnya yang sudah tersimpan dikunci agar riwayat tetap konsisten.</p>
+                    {% endif %}
+                </div>
+
+                {% if saved_meal_foods or saved_db_foods %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
+                    {% for food in saved_meal_foods + saved_db_foods %}
+                    <div class="rounded-2xl bg-white border border-slate-100 p-3">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <p class="font-black text-slate-800 text-sm">{{ food.nama }}</p>
+                                <p class="text-[11px] font-bold text-slate-400 mt-1">{{ food.meal_label }} · {{ food.kalori|round|int }} kkal</p>
+                            </div>
+                            {% if food.is_recommended %}
+                            <span class="text-[10px] font-black px-2 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-100 shrink-0">Sesuai</span>
+                            {% else %}
+                            <span class="text-[10px] font-black px-2 py-1 rounded-full bg-rose-50 text-rose-700 border border-rose-100 shrink-0">Perlu dibatasi</span>
+                            {% endif %}
+                        </div>
+                        {% if food.not_recommended_reasons %}
+                        <p class="text-[11px] font-bold text-rose-600 mt-2">Alasan: {{ food.not_recommended_reasons|join(', ') }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                {% else %}
+                <div class="rounded-3xl bg-slate-50 border border-slate-100 p-4 text-sm font-bold text-slate-500">Belum ada catatan untuk tanggal ini.</div>
+                {% endif %}
+            </div>
+
+            {% if summary.warnings %}
+            <div class="soft-card rounded-[2rem] p-6 border border-amber-100 bg-amber-50/70">
+                <p class="mini-label mb-3 text-amber-700">Perhatian minggu ini</p>
+                <div class="space-y-3">
+                    {% for warning in summary.warnings %}
+                    <div class="flex gap-3 rounded-2xl bg-white/80 p-4 border border-amber-100">
+                        <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0"><i class="fas fa-triangle-exclamation"></i></div>
+                        <p class="text-sm font-bold text-amber-800 leading-relaxed">{{ warning }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="soft-card rounded-[2rem] p-6">
+                <p class="mini-label mb-3">Ringkasan sistem</p>
+                <div class="space-y-3">
+                    {% for item in summary.feedback %}
+                    <div class="flex gap-3 rounded-2xl bg-slate-50 p-4">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0"><i class="fas fa-check"></i></div>
+                        <p class="text-sm font-bold text-slate-600 leading-relaxed">{{ item }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <p class="text-xs font-bold text-slate-400 mt-4">Angka progress adalah estimasi pemantauan, bukan diagnosis medis.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const ACTIVITIES = JSON.parse(document.getElementById('activities-data')?.textContent || '[]');
+const CHART_DATA = JSON.parse(document.getElementById('chart-data')?.textContent || '{}');
+const INITIAL_ACTIVITY = JSON.parse(document.getElementById('initial-activity-data')?.textContent || '{}');
+const activityName = document.getElementById('activityName');
+const activityType = document.getElementById('activityType');
+const metPreview = document.getElementById('metPreview');
+const selectedDbInput = document.getElementById('selectedDatabaseFoodIds');
+const selectedFoodsBox = document.getElementById('selectedFoods');
+const foodSearchInput = document.getElementById('foodSearchInput');
+const foodSearchBtn = document.getElementById('foodSearchBtn');
+const foodSearchResults = document.getElementById('foodSearchResults');
+let selectedDbFoods = JSON.parse(document.getElementById('saved-db-foods-data')?.textContent || '[]');
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text ?? '';
+    return div.innerHTML;
+}
+
+function refreshActivityTypes() {
+    const selected = activityName?.value || '';
+    const act = ACTIVITIES.find(a => a.nama === selected);
+    if (!activityType || !metPreview) return;
+    activityType.innerHTML = '';
+    metPreview.textContent = '';
+    if (!act || !act.met_details || act.met_details.length === 0) {
+        activityType.innerHTML = '<option value="">Tidak ada tipe</option>';
+        return;
+    }
+    act.met_details.forEach((d) => {
+        const opt = document.createElement('option');
+        opt.value = d.tipe;
+        opt.textContent = `${d.tipe} — MET ${d.met}`;
+        if (INITIAL_ACTIVITY.activity_type && INITIAL_ACTIVITY.activity_type === d.tipe) opt.selected = true;
+        activityType.appendChild(opt);
+    });
+    refreshMetPreview();
+}
+
+function refreshMetPreview() {
+    const selected = activityName?.value || '';
+    const type = activityType?.value || '';
+    const act = ACTIVITIES.find(a => a.nama === selected);
+    if (!act || !metPreview) {
+        if (metPreview) metPreview.textContent = '';
+        return;
+    }
+    const detail = (act.met_details || []).find(d => d.tipe === type);
+    metPreview.textContent = detail ? `Intensitas ${detail.tipe}, MET ${detail.met}` : '';
+}
+
+function updateSelectedDbFoods() {
+    selectedDbInput.value = JSON.stringify(selectedDbFoods.map(f => f.id));
+    if (selectedDbFoods.length === 0) {
+        selectedFoodsBox.innerHTML = '';
+        return;
+    }
+    selectedFoodsBox.innerHTML = selectedDbFoods.map((food, idx) => {
+        const recClass = food.is_recommended ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100';
+        const reasons = (food.not_recommended_reasons || []).join(', ');
+        return `
+            <div class="rounded-2xl border border-slate-100 bg-white p-3 flex items-start justify-between gap-3">
+                <div>
+                    <p class="font-black text-slate-800">${escapeHtml(food.nama)}</p>
+                    <p class="text-xs font-bold text-slate-400 mt-1">${Math.round(food.kalori || food.kalori_kkal || 0)} kkal · ${escapeHtml(food.kelompok_makanan || food.meal_label || '-')}</p>
+                    <span class="inline-flex mt-2 text-[11px] font-black px-2.5 py-1 rounded-full border ${recClass}">${escapeHtml(food.recommendation_label || (food.is_recommended ? 'Sesuai' : 'Perlu dibatasi'))}</span>
+                    ${reasons ? `<p class="text-[11px] font-bold text-rose-600 mt-2">Alasan: ${escapeHtml(reasons)}</p>` : ''}
+                </div>
+                <button type="button" onclick="removeSelectedFood(${idx})" class="px-3 py-2 rounded-xl bg-red-50 text-red-600 text-xs font-black hover:bg-red-100">Hapus</button>
+            </div>`;
+    }).join('');
+}
+
+function removeSelectedFood(index) {
+    selectedDbFoods.splice(index, 1);
+    updateSelectedDbFoods();
+}
+
+function addSelectedFood(food) {
+    if (selectedDbFoods.some(f => String(f.id) === String(food.id))) return;
+    selectedDbFoods.push(food);
+    updateSelectedDbFoods();
+}
+
+async function searchFoods() {
+    const q = (foodSearchInput?.value || '').trim();
+    if (!q) {
+        foodSearchResults.innerHTML = '<div class="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">Tulis nama makanan dulu.</div>';
+        return;
+    }
+    foodSearchResults.innerHTML = '<div class="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-500">Mencari makanan...</div>';
+    try {
+        const res = await fetch(`/progress/api/search-foods?q=${encodeURIComponent(q)}&limit=8`);
+        const data = await res.json();
+        const items = data.items || [];
+        if (items.length === 0) {
+            foodSearchResults.innerHTML = '<div class="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-700">Makanan tidak ditemukan.</div>';
+            return;
+        }
+        foodSearchResults.innerHTML = items.map((food, idx) => {
+            const recClass = food.is_recommended ? 'bg-emerald-50 text-emerald-700 border-emerald-100' : 'bg-rose-50 text-rose-700 border-rose-100';
+            const reasons = (food.not_recommended_reasons || []).join(', ');
+            window.__foodSearchCache = window.__foodSearchCache || [];
+            window.__foodSearchCache[idx] = food;
+            return `
+                <div class="rounded-2xl border border-slate-100 bg-white p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h4 class="font-black text-slate-800">${escapeHtml(food.nama)}</h4>
+                            <p class="text-xs font-bold text-slate-400 mt-1">${Math.round(food.kalori_kkal || 0)} kkal · Gula ${food.gula_g || 0}g · Natrium ${food.natrium_mg || 0}mg</p>
+                        </div>
+                        <button type="button" onclick="addSelectedFood(window.__foodSearchCache[${idx}])" class="px-3 py-2 rounded-xl bg-emerald-500 text-white text-xs font-black hover:bg-emerald-600">Tambah</button>
+                    </div>
+                    <span class="inline-flex mt-3 text-[11px] font-black px-2.5 py-1 rounded-full border ${recClass}">${escapeHtml(food.recommendation_label || '')}</span>
+                    ${reasons ? `<p class="text-[11px] font-bold text-rose-600 mt-2">Alasan: ${escapeHtml(reasons)}</p>` : ''}
+                </div>`;
+        }).join('');
+    } catch (err) {
+        foodSearchResults.innerHTML = '<div class="rounded-2xl bg-red-50 p-4 text-sm font-bold text-red-600">Gagal mencari makanan.</div>';
+    }
+}
+
+function drawProgressChart() {
+    const canvas = document.getElementById('progressChart');
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    const labels = CHART_DATA.labels || [];
+    const actual = CHART_DATA.actual || [];
+    const target = CHART_DATA.target || [];
+    const burned = CHART_DATA.burned || [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const pad = 42;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, width, height);
+    const maxVal = Math.max(1, ...actual, ...target, ...burned) * 1.15;
+    const x = (i) => pad + (i * ((width - pad * 2) / Math.max(1, labels.length - 1)));
+    const y = (v) => height - pad - ((v / maxVal) * (height - pad * 2));
+
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const yy = pad + i * ((height - pad * 2) / 4);
+        ctx.beginPath();
+        ctx.moveTo(pad, yy);
+        ctx.lineTo(width - pad, yy);
+        ctx.stroke();
+    }
+
+    function line(values, color, dashed=false) {
+        ctx.beginPath();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 3;
+        ctx.setLineDash(dashed ? [8, 7] : []);
+        values.forEach((v, i) => {
+            if (i === 0) ctx.moveTo(x(i), y(v));
+            else ctx.lineTo(x(i), y(v));
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        values.forEach((v, i) => {
+            ctx.beginPath();
+            ctx.fillStyle = color;
+            ctx.arc(x(i), y(v), 4, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+    line(target, '#94a3b8', true);
+    line(burned, '#f97316', false);
+    line(actual, '#10b981', false);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 12px sans-serif';
+    labels.forEach((label, i) => ctx.fillText(label, x(i) - 14, height - 14));
+    ctx.fillText(`${Math.round(maxVal)} kkal`, 8, pad);
+    ctx.fillText('0', 20, height - pad);
+}
+
+function drawWeightChart() {
+    const canvas = document.getElementById('weightChart');
+    if (!canvas || !canvas.getContext) return;
+    const ctx = canvas.getContext('2d');
+    const labels = CHART_DATA.labels || [];
+    const values = (CHART_DATA.estimated_weight || []).filter(v => Number(v) > 0);
+    const rawValues = CHART_DATA.estimated_weight || [];
+    const width = canvas.width;
+    const height = canvas.height;
+    const pad = 42;
+    ctx.clearRect(0, 0, width, height);
+    ctx.fillStyle = '#f8fafc';
+    ctx.fillRect(0, 0, width, height);
+
+    if (!values.length) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.fillText('Belum ada data berat badan untuk estimasi.', pad, height / 2);
+        return;
+    }
+
+    const minVal = Math.min(...values) - 0.2;
+    const maxVal = Math.max(...values) + 0.2;
+    const range = Math.max(0.1, maxVal - minVal);
+    const x = (i) => pad + (i * ((width - pad * 2) / Math.max(1, labels.length - 1)));
+    const y = (v) => height - pad - (((v - minVal) / range) * (height - pad * 2));
+
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 3; i++) {
+        const yy = pad + i * ((height - pad * 2) / 3);
+        ctx.beginPath();
+        ctx.moveTo(pad, yy);
+        ctx.lineTo(width - pad, yy);
+        ctx.stroke();
+    }
+
+    ctx.beginPath();
+    ctx.strokeStyle = '#7c3aed';
+    ctx.lineWidth = 3;
+    rawValues.forEach((v, i) => {
+        if (!Number(v)) return;
+        if (i === 0) ctx.moveTo(x(i), y(v));
+        else ctx.lineTo(x(i), y(v));
+    });
+    ctx.stroke();
+    rawValues.forEach((v, i) => {
+        if (!Number(v)) return;
+        ctx.beginPath();
+        ctx.fillStyle = '#7c3aed';
+        ctx.arc(x(i), y(v), 4, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = 'bold 12px sans-serif';
+    labels.forEach((label, i) => ctx.fillText(label, x(i) - 14, height - 14));
+    ctx.fillText(`${maxVal.toFixed(1)} kg`, 8, pad);
+    ctx.fillText(`${minVal.toFixed(1)} kg`, 8, height - pad);
+}
+
+const tanggalLog = document.getElementById('tanggalLog');
+tanggalLog?.addEventListener('change', () => {
+    const value = tanggalLog.value;
+    const max = tanggalLog.max;
+    const min = tanggalLog.min;
+    if (!value) return;
+    if (max && value > max) {
+        tanggalLog.value = max;
+        return;
+    }
+    if (min && value < min) {
+        tanggalLog.value = min;
+        return;
+    }
+    window.location.href = `/progress?tanggal=${encodeURIComponent(value)}`;
+});
+
+activityName?.addEventListener('change', () => {
+    INITIAL_ACTIVITY.activity_type = '';
+    refreshActivityTypes();
+});
+activityType?.addEventListener('change', refreshMetPreview);
+foodSearchBtn?.addEventListener('click', searchFoods);
+foodSearchInput?.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        searchFoods();
+    }
+});
+refreshActivityTypes();
+updateSelectedDbFoods();
+drawProgressChart();
+drawWeightChart();
+</script>
+
+{% endblock %}

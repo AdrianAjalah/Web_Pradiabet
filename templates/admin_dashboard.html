@@ -1,0 +1,992 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #818CF8;
+            --primary-dark: #3730A3;
+            --success: #10B981;
+            --success-light: #D1FAE5;
+            --danger: #EF4444;
+            --danger-light: #FEE2E2;
+            --warning: #F59E0B;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --text-secondary: #64748B;
+            --border: #E2E8F0;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -1px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+            --radius: 12px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        .admin-wrapper {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        /* ── HEADER ── */
+        .admin-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+        .admin-header .icon-circle {
+            width: 52px; height: 52px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 22px;
+            box-shadow: 0 4px 14px rgba(79,70,229,0.3);
+        }
+        .admin-header h1 {
+            font-size: 26px; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
+            background-clip: text;                    /* ← standar W3C */
+            -webkit-background-clip: text;            /* ← fallback Safari/Chrome lama */
+            -webkit-text-fill-color: transparent;     /* ← tidak ada standarnya, wajib -webkit */
+            color: transparent;                       /* ← fallback standar */
+        }
+        .admin-header p { font-size: 14px; color: var(--text-secondary); margin-top: 2px; }
+
+        /* ── ALERT / MESSAGE ── */
+        .alert {
+            display: flex; align-items: center; gap: 10px;
+            padding: 14px 18px; border-radius: var(--radius);
+            margin-bottom: 24px; font-size: 14px; font-weight: 500;
+            animation: slideDown 0.4s ease;
+        }
+        .alert-success { background: var(--success-light); color: #065F46; border: 1px solid #A7F3D0; }
+        .alert i { font-size: 18px; }
+        @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* ── CARD ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; gap: 12px;
+        }
+        .card-header .card-icon {
+            width: 36px; height: 36px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px;
+        }
+        .card-icon.upload { background: #EEF2FF; color: var(--primary); }
+        .card-icon.docs { background: #FEF3C7; color: var(--warning); }
+        .card-header h2 { font-size: 17px; font-weight: 700; }
+        .card-body { padding: 24px; }
+
+        /* ── UPLOAD ZONE ── */
+        .upload-zone {
+            border: 2px dashed #CBD5E1;
+            border-radius: var(--radius);
+            padding: 40px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            background: #FAFBFF;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary-light);
+            background: #EEF2FF;
+        }
+        .upload-zone.dragover {
+            border-color: var(--primary);
+            transform: scale(1.01);
+        }
+        .upload-zone .upload-icon {
+            font-size: 40px;
+            color: var(--primary-light);
+            margin-bottom: 12px;
+        }
+        .upload-zone h3 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: var(--text-secondary); }
+        .upload-zone input[type="file"] {
+            position: absolute; inset: 0; opacity: 0; cursor: pointer;
+        }
+
+        .file-list {
+            margin-top: 16px;
+            display: flex; flex-direction: column; gap: 8px;
+        }
+        .file-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px;
+            background: #F1F5F9;
+            border-radius: 8px;
+            font-size: 13px;
+        }
+        .file-item i { color: var(--primary); font-size: 16px; }
+        .file-item .file-name { flex: 1; font-weight: 500; }
+        .file-item .remove-file {
+            color: var(--danger); cursor: pointer; font-size: 14px;
+            background: none; border: none; padding: 4px;
+        }
+        .file-item .remove-file:hover { opacity: 0.7; }
+
+        .upload-actions {
+            display: flex; justify-content: flex-end; gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* ── BUTTONS ── */
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 10px 20px; border-radius: 8px;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer; border: none;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(79,70,229,0.3);
+        }
+        .btn-primary:hover { box-shadow: 0 4px 14px rgba(79,70,229,0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-outline {
+            background: transparent; color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-outline:hover { background: #F8FAFC; }
+        .btn-sm { padding: 7px 14px; font-size: 13px; border-radius: 6px; }
+        .btn-info { background: #3B82F6; color: #fff; }
+        .btn-info:hover { background: #2563EB; }
+        .btn-danger { background: #EF4444; color: #fff; }
+        .btn-danger:hover { background: #DC2626; }
+        .btn-success { background: var(--success); color: #fff; }
+
+        /* ── TABLE ── */
+        .doc-table { width: 100%; border-collapse: collapse; }
+        .doc-table thead th {
+            background: #F8FAFC;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            text-align: left;
+            border-bottom: 2px solid var(--border);
+        }
+        .doc-table thead th:last-child { text-align: center; }
+        .doc-table tbody tr {
+            transition: background 0.15s ease;
+        }
+        .doc-table tbody tr:hover { background: #F8FAFC; }
+        .doc-table tbody td {
+            padding: 14px 16px;
+            font-size: 14px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+        .doc-table tbody td:last-child { text-align: center; }
+
+        .file-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 6px 12px;
+            background: #F1F5F9;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .file-badge i { font-size: 16px; }
+        .file-badge .pdf { color: #EF4444; }
+        .file-badge .txt { color: #3B82F6; }
+        .file-badge .csv { color: var(--success); }
+
+        .action-group { display: flex; gap: 6px; justify-content: center; }
+
+        .empty-state {
+            text-align: center; padding: 48px 24px;
+        }
+        .empty-state i { font-size: 48px; color: #CBD5E1; margin-bottom: 12px; }
+        .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; }
+        .empty-state p { font-size: 13px; color: #94A3B8; }
+
+        .doc-count {
+            background: var(--primary);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            display: none;
+            position: fixed; inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            animation: fadeIn 0.2s ease;
+        }
+        .modal-overlay.active { display: flex; align-items: flex-start; justify-content: center; padding-top: 5vh; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            animation: slideUp 0.3s ease;
+            display: flex; flex-direction: column;
+        }
+        .modal-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .modal-close {
+            width: 36px; height: 36px;
+            border-radius: 8px; border: none;
+            background: #F1F5F9; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px; color: var(--text-secondary);
+            transition: all 0.15s;
+        }
+        .modal-close:hover { background: #E2E8F0; color: var(--text); }
+
+        .modal-body {
+            padding: 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .section-title {
+            font-size: 14px; font-weight: 700;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 12px; color: var(--text);
+        }
+        .section-title i { color: var(--primary); }
+
+        .chunk-box {
+            background: #F8FAFC;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 13px;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 250px;
+            overflow-y: auto;
+            margin-bottom: 6px;
+        }
+        .chunk-label {
+            display: inline-block;
+            background: var(--primary);
+            color: #fff;
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .qa-card {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 10px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .qa-card .qa-q {
+            font-weight: 700; font-size: 14px;
+            display: flex; gap: 8px; margin-bottom: 8px;
+        }
+        .qa-card .qa-q .qa-badge {
+            background: #3B82F6; color: #fff;
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            white-space: nowrap;
+        }
+        .qa-card .qa-a {
+            font-size: 13px; color: #44403C; line-height: 1.6;
+            display: flex; gap: 8px;
+        }
+        .qa-card .qa-a .qa-badge {
+            background: var(--success); color: #fff;
+            font-size: 11px; font-weight: 700;
+            padding: 2px 8px; border-radius: 4px;
+            white-space: nowrap; height: fit-content;
+        }
+
+        .loading-state {
+            text-align: center; padding: 32px; color: var(--text-secondary);
+        }
+        .loading-state i { font-size: 28px; animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .error-text { color: var(--danger); }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 640px) {
+            .admin-wrapper { padding: 16px 12px; }
+            .admin-header h1 { font-size: 20px; }
+            .upload-zone { padding: 24px 16px; }
+            .doc-table thead th, .doc-table tbody td { padding: 10px 8px; font-size: 13px; }
+            .action-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<div class="admin-wrapper">
+
+    <!-- HEADER -->
+    <div class="admin-header">
+        <div class="icon-circle"><i class="fas fa-shield-halved"></i></div>
+        <div>
+            <h1>Admin Dashboard</h1>
+            <p>Manajemen basis pengetahuan PrediaBeat &mdash; Selamat datang, <strong>{{ user.username }}</strong></p>
+        </div>
+    </div>
+
+    <!-- SUCCESS MESSAGE -->
+    {% if message %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ message }}</span>
+    </div>
+    {% endif %}
+
+    <!-- UPLOAD CARD -->
+    <div class="card" style="margin-bottom: 24px;">
+        <div class="card-header">
+            <div class="card-icon upload"><i class="fas fa-cloud-arrow-up"></i></div>
+            <h2>Unggah Dokumen Baru</h2>
+        </div>
+        <div class="card-body">
+            <form id="uploadForm" action="/admin/upload" method="post" enctype="multipart/form-data">
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="fileInput" name="files" accept=".pdf,.txt,.csv" multiple required>
+                    <div class="upload-icon"><i class="fas fa-cloud-arrow-up"></i></div>
+                    <h3>Drag & drop file di sini</h3>
+                    <p>atau klik untuk memilih &mdash; PDF, TXT, CSV (bisa beberapa file sekaligus)</p>
+                </div>
+                <div class="file-list" id="fileList"></div>
+                <div class="upload-actions" id="uploadActions" style="display:none;">
+                    <button type="button" class="btn btn-outline" onclick="clearFiles()"><i class="fas fa-xmark"></i> Batal</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fas fa-arrow-up-from-bracket"></i> Unggah Semua</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- DOCUMENT LIST CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-icon docs"><i class="fas fa-database"></i></div>
+            <h2>Dokumen di Database (RAG)</h2>
+            {% if uploaded_files %}
+            <span class="doc-count">{{ uploaded_files|length }}</span>
+            {% endif %}
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if uploaded_files %}
+            <table class="doc-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Nama File</th>
+                        <th style="width: 200px; text-align: center;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for file in uploaded_files %}
+                    <tr>
+                        <td style="color: var(--text-secondary); font-weight: 600;">{{ loop.index }}</td>
+                        <td>
+                            <span class="file-badge">
+                                {% if file.endswith('.pdf') %}
+                                    <i class="fas fa-file-pdf pdf"></i>
+                                {% elif file.endswith('.txt') %}
+                                    <i class="fas fa-file-lines txt"></i>
+                                {% elif file.endswith('.csv') %}
+                                    <i class="fas fa-file-csv csv"></i>
+                                {% else %}
+                                    <i class="fas fa-file"></i>
+                                {% endif %}
+                                {{ file }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                <button class="btn btn-sm btn-info" onclick="viewDetails('{{ file }}')">
+                                    <i class="fas fa-eye"></i> Detail
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteFile('{{ file }}')">
+                                    <i class="fas fa-trash-can"></i> Hapus
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>Belum ada dokumen</h3>
+                <p>Unggah dokumen pertama Anda untuk memulai membangun basis pengetahuan.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2><i class="fas fa-file-lines" style="color: var(--primary);"></i> <span id="modalTitle">Detail Dokumen</span></h2>
+            <button class="modal-close" onclick="closeModal()"><i class="fas fa-xmark"></i></button>
+        </div>
+        <div class="modal-body">
+            <!-- STATISTICS -->
+            <div id="statsBar" style="display:none; margin-bottom: 20px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <div style="flex:1; min-width: 140px; background: #EEF2FF; border-radius: 10px; padding: 14px 18px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 800; color: var(--primary);" id="statChunks">0</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Total Chunks</div>
+                    </div>
+                    <div style="flex:1; min-width: 140px; background: #FEF3C7; border-radius: 10px; padding: 14px 18px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 800; color: #D97706;" id="statQA">0</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">QA Pairs</div>
+                    </div>
+                    <div style="flex:1; min-width: 140px; background: #D1FAE5; border-radius: 10px; padding: 14px 18px; text-align: center;">
+                        <div style="font-size: 24px; font-weight: 800; color: #059669;" id="statSource">-</div>
+                        <div style="font-size: 12px; color: var(--text-secondary); font-weight: 600;">Koleksi</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS -->
+            <div id="tabContainer" style="display:none; margin-bottom: 20px;">
+                <div style="display: flex; gap: 4px; background: #F1F5F9; border-radius: 10px; padding: 4px;">
+                    <button class="tab-btn active" onclick="switchTab('chunks')" id="tabChunks">
+                        <i class="fas fa-puzzle-piece"></i> Chunks
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('qa')" id="tabQA">
+                        <i class="fas fa-comments"></i> QA Pairs
+                    </button>
+                </div>
+            </div>
+
+            <!-- CHUNKS PANEL -->
+            <div id="chunksPanel">
+                <div class="section-title"><i class="fas fa-puzzle-piece"></i> Hasil Chunking</div>
+                <div id="chunkContainer">
+                    <div class="loading-state"><i class="fas fa-spinner"></i><p>Memuat data...</p></div>
+                </div>
+                <div id="chunkLoadMore" style="display:none; text-align:center; padding: 16px;">
+                    <button class="btn btn-outline" onclick="loadMoreChunks()" id="loadMoreBtn">
+                        <i class="fas fa-chevron-down"></i> Tampilkan Lebih Banyak
+                    </button>
+                    <span id="chunkPageInfo" style="display:block; margin-top:8px; font-size:12px; color:var(--text-secondary);"></span>
+                </div>
+            </div>
+
+            <!-- QA PANEL -->
+            <div id="qaPanel" style="display:none;">
+                <div class="section-title"><i class="fas fa-comments"></i> Hasil QA Generation</div>
+                <div id="qaContainer">
+                    <div class="loading-state"><i class="fas fa-spinner"></i><p>Memuat data...</p></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tab-btn {
+        flex: 1; padding: 10px 16px;
+        border: none; border-radius: 8px;
+        background: transparent; color: var(--text-secondary);
+        font-size: 14px; font-weight: 600; cursor: pointer;
+        font-family: inherit; transition: all 0.2s;
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .tab-btn.active {
+        background: #fff; color: var(--primary);
+        box-shadow: var(--shadow);
+    }
+    .tab-btn:hover:not(.active) { color: var(--text); }
+
+    .chunk-accordion {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+    .chunk-accordion:hover { border-color: #CBD5E1; }
+    .chunk-accordion-header {
+        display: flex; align-items: center; gap: 10px;
+        padding: 12px 16px;
+        background: #F8FAFC;
+        cursor: pointer;
+        user-select: none;
+        transition: background 0.15s;
+    }
+    .chunk-accordion-header:hover { background: #F1F5F9; }
+    .chunk-accordion-header .chevron {
+        color: var(--text-secondary);
+        font-size: 12px;
+        transition: transform 0.2s;
+    }
+    .chunk-accordion-header.open .chevron { transform: rotate(90deg); }
+    .chunk-accordion-header .chunk-num {
+        background: var(--primary);
+        color: #fff; font-size: 11px; font-weight: 700;
+        padding: 3px 10px; border-radius: 6px;
+    }
+    .chunk-accordion-header .chunk-preview {
+        flex: 1; font-size: 13px; color: var(--text-secondary);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        max-width: 500px;
+    }
+    .chunk-accordion-body {
+        display: none;
+        padding: 16px;
+        border-top: 1px solid var(--border);
+        background: #FAFBFF;
+    }
+    .chunk-accordion-body.open { display: block; }
+    .chunk-text {
+        font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+        font-size: 12.5px; line-height: 1.8;
+        white-space: pre-wrap; word-break: break-word;
+    }
+
+    /* Format khusus data CSV makanan */
+    .food-field {
+        display: inline-block;
+        margin: 2px 4px;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+    }
+    .food-field.nama { background: #DBEAFE; color: #1E40AF; font-weight: 600; }
+    .food-field.kalori { background: #FEE2E2; color: #991B1B; font-weight: 600; }
+    .food-field.protein { background: #D1FAE5; color: #065F46; }
+    .food-field.karbo { background: #FEF3C7; color: #92400E; }
+    .food-field.lemak { background: #FCE7F3; color: #9D174D; }
+    .food-field.kategori { background: #E0E7FF; color: #3730A3; }
+    .food-field.kode { background: #F1F5F9; color: #64748B; }
+</style>
+
+<script>
+    // ══════════════════════════════════════════
+    // STATE
+    // ══════════════════════════════════════════
+    let allChunks = [];
+    let allQA = [];
+    let chunkPage = 0;
+    const CHUNKS_PER_PAGE = 10;
+    let currentTab = 'chunks';
+
+    // ══════════════════════════════════════════
+    // UPLOAD: DRAG & DROP + MULTI-FILE
+    // ══════════════════════════════════════════
+    const uploadZone = document.getElementById('uploadZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileList = document.getElementById('fileList');
+    const uploadActions = document.getElementById('uploadActions');
+
+    uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+    });
+    uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+    });
+    uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        fileInput.files = e.dataTransfer.files;
+        renderFileList();
+    });
+
+    fileInput.addEventListener('change', renderFileList);
+
+    function renderFileList() {
+        fileList.innerHTML = '';
+        const files = fileInput.files;
+        if (files.length === 0) {
+            uploadActions.style.display = 'none';
+            return;
+        }
+        uploadActions.style.display = 'flex';
+        for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            const ext = f.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file';
+            let colorStyle = '';
+            if (ext === 'pdf') { iconClass = 'fa-file-pdf'; colorStyle = 'color:#EF4444'; }
+            else if (ext === 'txt') { iconClass = 'fa-file-lines'; colorStyle = 'color:#3B82F6'; }
+            else if (ext === 'csv') { iconClass = 'fa-file-csv'; colorStyle = 'color:#10B981'; }
+            const sizeMB = (f.size / 1024 / 1024).toFixed(2);
+            const div = document.createElement('div');
+            div.className = 'file-item';
+            div.innerHTML = `
+                <i class="fas ${iconClass}" style="${colorStyle}"></i>
+                <span class="file-name">${f.name}</span>
+                <span style="color: var(--text-secondary); font-size: 12px;">${sizeMB} MB</span>
+                <button type="button" class="remove-file" onclick="removeFile(${i})" title="Hapus"><i class="fas fa-xmark"></i></button>
+            `;
+            fileList.appendChild(div);
+        }
+    }
+
+    function removeFile(index) {
+        const dt = new DataTransfer();
+        const files = fileInput.files;
+        for (let i = 0; i < files.length; i++) {
+            if (i !== index) dt.items.add(files[i]);
+        }
+        fileInput.files = dt.files;
+        renderFileList();
+    }
+
+    function clearFiles() {
+        fileInput.value = '';
+        fileList.innerHTML = '';
+        uploadActions.style.display = 'none';
+    }
+
+    // ══════════════════════════════════════════
+    // DELETE FILE
+    // ══════════════════════════════════════════
+    async function deleteFile(filename) {
+        if (!confirm(`Hapus '${filename}' beserta seluruh datanya di Qdrant?`)) return;
+        try {
+            const response = await fetch(`/admin/document/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+            const result = await response.json();
+            if (result.success) {
+                const rows = document.querySelectorAll('.doc-table tbody tr');
+                rows.forEach(row => {
+                    if (row.textContent.includes(filename)) {
+                        row.style.transition = 'all 0.3s ease';
+                        row.style.opacity = '0';
+                        row.style.transform = 'translateX(20px)';
+                        setTimeout(() => location.reload(), 400);
+                    }
+                });
+            } else {
+                alert("Gagal menghapus file.");
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Terjadi kesalahan saat menghapus data.");
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // TAB SWITCHING
+    // ══════════════════════════════════════════
+    function switchTab(tab) {
+        currentTab = tab;
+        document.getElementById('tabChunks').classList.toggle('active', tab === 'chunks');
+        document.getElementById('tabQA').classList.toggle('active', tab === 'qa');
+        document.getElementById('chunksPanel').style.display = tab === 'chunks' ? 'block' : 'none';
+        document.getElementById('qaPanel').style.display = tab === 'qa' ? 'block' : 'none';
+    }
+
+    // ══════════════════════════════════════════
+    // VIEW DETAILS (CHUNK & QA)
+    // ══════════════════════════════════════════
+    async function viewDetails(filename) {
+        const modal = document.getElementById('detailModal');
+        modal.classList.add('active');
+        document.getElementById('modalTitle').innerText = filename;
+
+        // Reset state
+        allChunks = [];
+        allQA = [];
+        chunkPage = 0;
+        currentTab = 'chunks';
+        switchTab('chunks');
+
+        // Show loading
+        document.getElementById('statsBar').style.display = 'none';
+        document.getElementById('tabContainer').style.display = 'none';
+        document.getElementById('chunkContainer').innerHTML = '<div class="loading-state"><i class="fas fa-spinner"></i><p>Memuat dari Qdrant...</p></div>';
+        document.getElementById('qaContainer').innerHTML = '<div class="loading-state"><i class="fas fa-spinner"></i><p>Memuat dari Qdrant...</p></div>';
+        document.getElementById('chunkLoadMore').style.display = 'none';
+
+        try {
+            const response = await fetch(`/admin/document/${encodeURIComponent(filename)}/details`);
+            if (!response.ok) throw new Error('HTTP ' + response.status);
+            const data = await response.json();
+
+            allChunks = data.chunks || [];
+            allQA = data.qa_data || [];
+
+            // ── Stats ──
+            document.getElementById('statChunks').innerText = allChunks.length;
+            document.getElementById('statQA').innerText = allQA.length;
+            document.getElementById('statSource').innerText = allChunks.length > 0 ? 'Docs' : (allQA.length > 0 ? 'QA' : '-');
+            document.getElementById('statsBar').style.display = 'block';
+            document.getElementById('tabContainer').style.display = 'block';
+
+            // ── Render Chunks (paged) ──
+            renderChunks();
+
+            // ── Render QA ──
+            renderQA();
+
+        } catch (error) {
+            console.error(error);
+            document.getElementById('chunkContainer').innerHTML = `<p class="error-text"><i class="fas fa-triangle-exclamation"></i> Gagal memuat: ${error.message}</p>`;
+            document.getElementById('qaContainer').innerHTML = '';
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // RENDER CHUNKS (PAGINATED ACCORDION)
+    // ══════════════════════════════════════════
+    function renderChunks() {
+        const container = document.getElementById('chunkContainer');
+        container.innerHTML = '';
+
+        if (allChunks.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:24px; color:var(--text-secondary);">
+                    <i class="fas fa-inbox" style="font-size:28px; color:#CBD5E1;"></i>
+                    <p style="margin-top:8px;">Tidak ada chunk ditemukan di Qdrant.</p>
+                </div>`;
+            document.getElementById('chunkLoadMore').style.display = 'none';
+            return;
+        }
+
+        const start = 0;
+        const end = Math.min((chunkPage + 1) * CHUNKS_PER_PAGE, allChunks.length);
+
+        for (let i = start; i < end; i++) {
+            const chunk = allChunks[i];
+            const preview = chunk.substring(0, 80).replace(/\n/g, ' ') + (chunk.length > 80 ? '...' : '');
+
+            const div = document.createElement('div');
+            div.className = 'chunk-accordion';
+            div.innerHTML = `
+                <div class="chunk-accordion-header" onclick="toggleChunk(this)">
+                    <i class="fas fa-chevron-right chevron"></i>
+                    <span class="chunk-num">Chunk ${i + 1}</span>
+                    <span class="chunk-preview">${escapeHtml(preview)}</span>
+                </div>
+                <div class="chunk-accordion-body">
+                    <div class="chunk-text">${formatChunkContent(escapeHtml(chunk))}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        // Load more button
+        if (end < allChunks.length) {
+            document.getElementById('chunkLoadMore').style.display = 'block';
+            document.getElementById('chunkPageInfo').innerText = `Menampilkan ${end} dari ${allChunks.length} chunks`;
+            document.getElementById('loadMoreBtn').innerHTML = `<i class="fas fa-chevron-down"></i> Tampilkan Lebih Banyak (${allChunks.length - end} tersisa)`;
+        } else {
+            document.getElementById('chunkLoadMore').style.display = 'block';
+            document.getElementById('chunkPageInfo').innerText = `Semua ${allChunks.length} chunks ditampilkan`;
+            document.getElementById('loadMoreBtn').style.display = 'none';
+        }
+    }
+
+    function loadMoreChunks() {
+        chunkPage++;
+        const start = chunkPage * CHUNKS_PER_PAGE;
+        const end = Math.min((chunkPage + 1) * CHUNKS_PER_PAGE, allChunks.length);
+
+        const container = document.getElementById('chunkContainer');
+
+        for (let i = start; i < end; i++) {
+            const chunk = allChunks[i];
+            const preview = chunk.substring(0, 80).replace(/\n/g, ' ') + (chunk.length > 80 ? '...' : '');
+
+            const div = document.createElement('div');
+            div.className = 'chunk-accordion';
+            div.style.animation = 'fadeIn 0.3s ease';
+            div.innerHTML = `
+                <div class="chunk-accordion-header" onclick="toggleChunk(this)">
+                    <i class="fas fa-chevron-right chevron"></i>
+                    <span class="chunk-num">Chunk ${i + 1}</span>
+                    <span class="chunk-preview">${escapeHtml(preview)}</span>
+                </div>
+                <div class="chunk-accordion-body">
+                    <div class="chunk-text">${formatChunkContent(escapeHtml(chunk))}</div>
+                </div>
+            `;
+            container.appendChild(div);
+        }
+
+        // Update load more
+        if (end < allChunks.length) {
+            document.getElementById('chunkPageInfo').innerText = `Menampilkan ${end} dari ${allChunks.length} chunks`;
+            document.getElementById('loadMoreBtn').innerHTML = `<i class="fas fa-chevron-down"></i> Tampilkan Lebih Banyak (${allChunks.length - end} tersisa)`;
+        } else {
+            document.getElementById('chunkPageInfo').innerText = `Semua ${allChunks.length} chunks ditampilkan`;
+            document.getElementById('loadMoreBtn').style.display = 'none';
+        }
+    }
+
+    function toggleChunk(header) {
+        const body = header.nextElementSibling;
+        const isOpen = body.classList.contains('open');
+
+        if (isOpen) {
+            body.classList.remove('open');
+            header.classList.remove('open');
+        } else {
+            body.classList.add('open');
+            header.classList.add('open');
+        }
+    }
+
+    // ══════════════════════════════════════════
+    // FORMAT CHUNK CONTENT
+    // ══════════════════════════════════════════
+    function formatChunkContent(text) {
+        // Deteksi format data makanan (Kode FM/TM/KM + field gizi)
+        if (/Kode\s+(FM|TM|KM)/i.test(text)) {
+            return formatFoodData(text);
+        }
+        return text;
+    }
+
+    function formatFoodData(text) {
+        // Split per baris, lalu format field yang dikenali
+        let lines = text.split('\n');
+        let result = [];
+
+        for (let line of lines) {
+            // Deteksi pattern: "Kode FM023" → badge
+            line = line.replace(/(Kode\s+(FM|TM|KM)\d+)/gi, '<span class="food-field kode">$1</span>');
+
+            // Deteksi kalori: "Kalori 108" atau "Kalori: 108 kkal"
+            line = line.replace(/(Kalori\s*:?\s*)(\d[\d.,]*\s*(?:kkal|kal|Kkal)?)/gi,
+                '<span class="food-field kalori">$1$2</span>');
+
+            // Deteksi protein
+            line = line.replace(/(Protein\s*:?\s*)([\d.,]+\s*g)/gi,
+                '<span class="food-field protein">$1$2</span>');
+
+            // Deteksi karbohidrat
+            line = line.replace(/(Karbohidrat\s*:?\s*)([\d.,]+\s*g)/gi,
+                '<span class="food-field karbo">$1$2</span>');
+
+            // Deteksi lemak
+            line = line.replace(/(Lemak\s*:?\s*)([\d.,]+\s*g)/gi,
+                '<span class="food-field lemak">$1$2</span>');
+
+            // Deteksi kategori
+            line = line.replace(/(Kategori\s*:?\s*)(\S+)/gi,
+                '<span class="food-field kategori">$1$2</span>');
+
+            // Deteksi nama makanan (biasanya baris dengan "Nama" atau baris pertama setelah Kode)
+            line = line.replace(/(Nama\s*Makanan\s*:?\s*)(.+)/gi,
+                '<span class="food-field nama">$1$2</span>');
+
+            result.push(line);
+        }
+
+        return result.join('\n');
+    }
+
+    // ══════════════════════════════════════════
+    // RENDER QA
+    // ══════════════════════════════════════════
+    function renderQA() {
+        const container = document.getElementById('qaContainer');
+
+        if (allQA.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:24px; color:var(--text-secondary);">
+                    <i class="fas fa-comment-slash" style="font-size:28px; color:#CBD5E1;"></i>
+                    <p style="margin-top:8px;">Tidak ada data QA ditemukan di Qdrant.</p>
+                </div>`;
+            return;
+        }
+
+        let html = '';
+        allQA.forEach((qa, i) => {
+            html += `
+                <div class="qa-card">
+                    <div class="qa-q">
+                        <span class="qa-badge" style="background:#3B82F6;">Q${i + 1}</span>
+                        <span>${escapeHtml(qa.q)}</span>
+                    </div>
+                    <div class="qa-a">
+                        <span class="qa-badge" style="background:#10B981;">A</span>
+                        <span>${escapeHtml(qa.a)}</span>
+                    </div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // ══════════════════════════════════════════
+    // UTILITY
+    // ══════════════════════════════════════════
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').classList.remove('active');
+    }
+
+    document.getElementById('detailModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeModal();
+    });
+</script>
+</body>
+</html>
+{% endblock %}

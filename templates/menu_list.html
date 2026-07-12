@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    body {
+        background:
+            radial-gradient(circle at top left, rgba(16, 185, 129, 0.18), transparent 32rem),
+            radial-gradient(circle at top right, rgba(20, 184, 166, 0.14), transparent 28rem),
+            linear-gradient(135deg, #ecfdf5 0%, #f8fafc 48%, #eff6ff 100%);
+    }
+    .soft-float { animation: softFloat 6s ease-in-out infinite; }
+    @keyframes softFloat {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    .menu-card:hover .food-img {
+        transform: scale(1.06);
+    }
+    .nutri-bar {
+        position: relative;
+        overflow: hidden;
+    }
+    .nutri-bar::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.55), transparent);
+        transform: translateX(-100%);
+        animation: shimmer 2.8s infinite;
+    }
+    @keyframes shimmer {
+        100% { transform: translateX(100%); }
+    }
+</style>
+
+<div class="fixed inset-0 overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute -top-28 -left-24 w-96 h-96 rounded-full bg-emerald-200/50 blur-3xl soft-float"></div>
+    <div class="absolute top-72 -right-28 w-96 h-96 rounded-full bg-cyan-200/40 blur-3xl soft-float" style="animation-delay: 1.2s;"></div>
+    <div class="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-lime-100/60 blur-3xl soft-float" style="animation-delay: 2.2s;"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+
+    <!-- HERO -->
+    <section class="relative overflow-hidden rounded-[2rem] bg-white/75 backdrop-blur-xl border border-white/80 shadow-[0_20px_60px_rgba(15,23,42,.08)] mb-8">
+        <div class="absolute top-0 right-0 w-80 h-80 bg-gradient-to-br from-emerald-200/70 to-teal-200/40 rounded-full blur-3xl translate-x-24 -translate-y-24"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-100/80 to-emerald-100/60 rounded-full blur-3xl -translate-x-20 translate-y-20"></div>
+
+        <div class="relative p-6 md:p-8 lg:p-10">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                <div class="max-w-2xl">
+                    <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-100 text-emerald-700 px-3 py-1.5 rounded-full text-xs font-extrabold mb-4">
+                        <i class="fa-solid fa-bowl-food"></i>
+                        Database Nutrisi Makanan
+                    </div>
+                    <h1 class="text-3xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
+                        Daftar Menu & <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">Detail Nutrisi</span>
+                    </h1>
+                    <p class="text-slate-500 mt-4 leading-relaxed max-w-xl">
+                        Cari makanan, lihat kalori dan makronutrien, lalu filter makanan yang perlu dibatasi seperti
+                        high sodium, high sugar, high GI, ultra-proses, gorengan, dan bahan mentah.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-3 min-w-full lg:min-w-[420px]">
+                    <div class="rounded-2xl bg-white/80 border border-slate-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-slate-900">{{ total_items }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-slate-400">Total Data</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/80 border border-emerald-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-emerald-700">{{ counts_by_filter.get('recommended', 0) }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-emerald-500">Lebih Aman</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/80 border border-orange-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-orange-600">{{ counts_by_filter.get('high_sodium', 0) }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-orange-500">High Sodium</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/80 border border-rose-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-rose-600">{{ counts_by_filter.get('high_sugar', 0) }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-rose-500">High Sugar</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/80 border border-red-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-red-600">{{ counts_by_filter.get('high_glycemic', 0) }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-red-500">High GI</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/80 border border-slate-100 p-4 shadow-sm">
+                        <div class="text-2xl font-black text-slate-700">{{ counts_by_filter.get('ultra_processed', 0) }}</div>
+                        <div class="text-[11px] uppercase tracking-wide font-bold text-slate-400">Ultra-proses</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILTER PANEL -->
+    <section class="bg-white/80 backdrop-blur-xl border border-white/80 rounded-[1.75rem] shadow-[0_16px_40px_rgba(15,23,42,.06)] p-5 md:p-6 mb-8">
+        <form method="get" action="/menu" id="menu-filter-form">
+            <input type="hidden" name="page" value="1">
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                <div class="lg:col-span-5">
+                    <label class="text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2 block">Cari menu</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input
+                            type="text"
+                            name="q"
+                            value="{{ q }}"
+                            placeholder="Contoh: nasi merah, ayam, ABC, kangkung..."
+                            class="w-full pl-11 pr-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all">
+                    </div>
+                </div>
+
+                <div class="lg:col-span-3">
+                    <label class="text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2 block">Kategori</label>
+                    <select name="kategori" onchange="this.form.submit()" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all">
+                        <option value="">Semua kategori</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat }}" {% if kategori == cat %}selected{% endif %}>{{ cat }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <label class="text-xs font-extrabold text-slate-500 uppercase tracking-wide mb-2 block">Urutkan</label>
+                    <select name="sort" onchange="this.form.submit()" class="w-full px-4 py-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-sm font-bold focus:outline-none focus:ring-4 focus:ring-emerald-100 focus:border-emerald-400 transition-all">
+                        <option value="nama_asc" {% if sort == 'nama_asc' %}selected{% endif %}>Nama A-Z</option>
+                        <option value="kalori_desc" {% if sort == 'kalori_desc' %}selected{% endif %}>Kalori tertinggi</option>
+                        <option value="kalori_asc" {% if sort == 'kalori_asc' %}selected{% endif %}>Kalori terendah</option>
+                        <option value="protein_desc" {% if sort == 'protein_desc' %}selected{% endif %}>Protein tertinggi</option>
+                        <option value="serat_desc" {% if sort == 'serat_desc' %}selected{% endif %}>Serat tertinggi</option>
+                        <option value="gula_desc" {% if sort == 'gula_desc' %}selected{% endif %}>Gula tertinggi</option>
+                        <option value="sodium_desc" {% if sort == 'sodium_desc' %}selected{% endif %}>Sodium tertinggi</option>
+                        <option value="gi_desc" {% if sort == 'gi_desc' %}selected{% endif %}>GI tertinggi</option>
+                    </select>
+                </div>
+
+                <div class="lg:col-span-2 flex items-end gap-2">
+                    <button class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-extrabold shadow-lg shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all">
+                        <i class="fa-solid fa-filter"></i>
+                        Terapkan
+                    </button>
+                    <a href="/menu" class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 text-slate-500 hover:bg-slate-200 transition-all" title="Reset">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </a>
+                </div>
+            </div>
+
+            <input type="hidden" name="filter" value="{{ filter }}">
+        </form>
+
+        <div class="mt-5 pt-5 border-t border-slate-100">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <h3 class="text-sm font-black text-slate-800">Filter cepat</h3>
+                <p class="text-xs text-slate-400 font-semibold">
+                    Aktif: <span class="text-emerald-600">{{ active_filter_label }}</span>
+                </p>
+            </div>
+
+            <div class="flex gap-2 overflow-x-auto pb-2">
+                {% for opt in filter_options %}
+                    <a
+                        href="/menu?q={{ q|urlencode }}&kategori={{ kategori|urlencode }}&filter={{ opt.key }}&sort={{ sort }}&page=1"
+                        class="shrink-0 group inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-sm font-extrabold transition-all
+                            {% if filter == opt.key %}
+                                bg-emerald-500 text-white border-emerald-500 shadow-lg shadow-emerald-500/20
+                            {% else %}
+                                bg-white/80 text-slate-600 border-slate-200 hover:border-emerald-300 hover:text-emerald-700 hover:-translate-y-0.5
+                            {% endif %}">
+                        <span>{{ opt.icon }}</span>
+                        <span>{{ opt.label }}</span>
+                        <span class="text-[11px] px-2 py-0.5 rounded-full
+                            {% if filter == opt.key %}bg-white/20 text-white{% else %}bg-slate-100 text-slate-500 group-hover:bg-emerald-50 group-hover:text-emerald-700{% endif %}">
+                            {{ counts_by_filter.get(opt.key, 0) }}
+                        </span>
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- INFO BAR -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-5">
+        <div>
+            <h2 class="text-2xl font-black text-slate-900">Hasil daftar menu</h2>
+            <p class="text-sm text-slate-500 mt-1">
+                Menampilkan <b class="text-slate-700">{{ total_filtered }}</b> dari <b class="text-slate-700">{{ total_items }}</b> data.
+                Threshold: sodium tinggi ≥ {{ thresholds.high_sodium|int }} mg, gula tinggi ≥ {{ thresholds.high_sugar }} g, GI tinggi ≥ {{ thresholds.high_gi|int }}.
+            </p>
+        </div>
+        <a href="/dashboard" class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-white/80 border border-slate-200 text-slate-600 font-bold hover:text-emerald-700 hover:border-emerald-300 transition-all">
+            <i class="fa-solid fa-arrow-left"></i>
+            Dashboard
+        </a>
+    </div>
+
+    {% if not dataset_path %}
+        <div class="bg-rose-50 border border-rose-200 text-rose-700 rounded-3xl p-6 font-semibold">
+            Dataset belum ditemukan. Simpan file CSV ke folder <code class="bg-white px-2 py-1 rounded-lg">data/matched_nutrisi_hotlink_gabungan_kategori(1).csv</code>.
+        </div>
+    {% elif items|length == 0 %}
+        <div class="bg-white/80 border border-slate-100 rounded-3xl p-10 text-center shadow-sm">
+            <div class="text-5xl mb-4">🔍</div>
+            <h3 class="text-xl font-black text-slate-800">Menu tidak ditemukan</h3>
+            <p class="text-slate-500 mt-2">Coba ubah kata kunci, kategori, atau filter yang dipilih.</p>
+            <a href="/menu" class="inline-flex mt-5 px-5 py-3 rounded-2xl bg-emerald-500 text-white font-bold">Reset filter</a>
+        </div>
+    {% else %}
+        <!-- MENU GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {% for item in items %}
+                <article class="menu-card bg-white/85 backdrop-blur-xl border border-white/90 rounded-[1.75rem] overflow-hidden shadow-[0_12px_36px_rgba(15,23,42,.06)] hover:shadow-[0_20px_50px_rgba(15,23,42,.10)] hover:-translate-y-1 transition-all">
+                    <div class="relative h-44 bg-gradient-to-br from-emerald-50 to-teal-50 overflow-hidden">
+                        {% if item.hotlink %}
+                            <img src="{{ item.hotlink }}" alt="{{ item.nama }}" class="food-img w-full h-full object-cover transition-transform duration-500" loading="lazy" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <div class="hidden w-full h-full items-center justify-center text-6xl bg-gradient-to-br from-emerald-50 to-teal-50">{{ item.icon }}</div>
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-6xl">{{ item.icon }}</div>
+                        {% endif %}
+
+                        <div class="absolute top-3 left-3 flex flex-wrap gap-2">
+                            <span class="bg-white/90 backdrop-blur text-slate-700 border border-white px-3 py-1 rounded-full text-[11px] font-black shadow-sm">
+                                {{ item.kategori_utama }}
+                            </span>
+                            {% if item.kode %}
+                                <span class="bg-slate-900/70 backdrop-blur text-white px-3 py-1 rounded-full text-[11px] font-black">
+                                    {{ item.kode }}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        <div class="absolute bottom-3 right-3 bg-white/95 backdrop-blur px-4 py-2 rounded-2xl shadow-sm text-right">
+                            <div class="text-xl font-black text-slate-900">{{ item.kalori_fmt }}</div>
+                            <div class="text-[10px] uppercase tracking-wide font-bold text-slate-400">kkal</div>
+                        </div>
+                    </div>
+
+                    <div class="p-5">
+                        <div class="min-h-[72px]">
+                            <h3 class="font-black text-slate-900 leading-snug line-clamp-2">{{ item.nama }}</h3>
+                            <p class="text-xs text-slate-400 font-semibold mt-1">{{ item.kategori_detail }} · {{ item.porsi_g|int }} g</p>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mt-4 min-h-[34px]">
+                            {% for flag in item.flags %}
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-extrabold border {{ flag.class }}">
+                                    {{ flag.label }}
+                                </span>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Macro bars -->
+                        <div class="mt-5 space-y-3">
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                                    <span>Karbo</span><span>{{ item.karbo_fmt }}g</span>
+                                </div>
+                                <div class="nutri-bar h-2 rounded-full bg-slate-100">
+                                    <div class="h-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400" data-bar-width="{{ [item.karbohidrat_g, 100]|min }}" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                                    <span>Protein</span><span>{{ item.protein_fmt }}g</span>
+                                </div>
+                                <div class="nutri-bar h-2 rounded-full bg-slate-100">
+                                    <div class="h-2 rounded-full bg-gradient-to-r from-blue-400 to-cyan-400" data-bar-width="{{ [item.protein_g * 2, 100]|min }}" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs font-bold text-slate-600 mb-1">
+                                    <span>Lemak</span><span>{{ item.lemak_fmt }}g</span>
+                                </div>
+                                <div class="nutri-bar h-2 rounded-full bg-slate-100">
+                                    <div class="h-2 rounded-full bg-gradient-to-r from-amber-400 to-orange-400" data-bar-width="{{ [item.lemak_g * 2, 100]|min }}" style="width: 0%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Nutrient details -->
+                        <div class="grid grid-cols-4 gap-2 mt-5">
+                            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
+                                <div class="text-sm font-black text-slate-800">{{ item.gula_fmt }}</div>
+                                <div class="text-[10px] font-bold text-slate-400">Gula g</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
+                                <div class="text-sm font-black text-slate-800">{{ item.serat_fmt }}</div>
+                                <div class="text-[10px] font-bold text-slate-400">Serat g</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
+                                <div class="text-sm font-black text-slate-800">{{ item.sodium_fmt }}</div>
+                                <div class="text-[10px] font-bold text-slate-400">Na mg</div>
+                            </div>
+                            <div class="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-center">
+                                <div class="text-sm font-black text-slate-800">{{ item.gi_fmt }}</div>
+                                <div class="text-[10px] font-bold text-slate-400">GI</div>
+                            </div>
+                        </div>
+
+                        {% if item.is_high_glycemic_risk and not item.is_high_glycemic %}
+                        <div class="mt-4 rounded-2xl bg-fuchsia-50 border border-fuchsia-100 px-4 py-3 text-xs text-fuchsia-700 font-bold leading-relaxed">
+                            ⚠️ Data ini punya <b>Risk Glikemik High</b>, tapi tidak otomatis disebut <b>High GI</b> kalau nilai GI/estimated GI tidak ≥ 70.
+                        </div>
+                        {% endif %}
+
+                        <details class="mt-4 group">
+                            <summary class="cursor-pointer list-none flex items-center justify-between rounded-2xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 px-4 py-3 text-sm font-extrabold text-slate-700 hover:text-emerald-700 transition-all">
+                                Detail nutrisi lengkap
+                                <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div class="mt-3 rounded-2xl border border-slate-100 overflow-hidden bg-white">
+                                <div class="grid grid-cols-2 text-xs">
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Glikemik Risk</div>
+                                    <div class="p-3 border-b border-slate-100 font-black">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full border text-[11px] font-extrabold {{ item.glikemik_risk_class }}">
+                                            {{ item.glikemik_risk_label }}
+                                        </span>
+                                    </div>
+
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Nilai GI</div>
+                                    <div class="p-3 border-b border-slate-100 font-black text-slate-800">{{ item.gi_fmt }} <span class="text-[10px] text-slate-400 font-bold">({{ item.gi_source }})</span></div>
+
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Glycemic Load</div>
+                                    <div class="p-3 border-b border-slate-100 font-black text-slate-800">{{ item.gl_fmt }}</div>
+
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Net Karbo</div>
+                                    <div class="p-3 border-b border-slate-100 font-black text-slate-800">{{ item.net_karbo|round(1) }} g</div>
+
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Lemak jenuh</div>
+                                    <div class="p-3 border-b border-slate-100 font-black text-slate-800">{{ item.lemak_jenuh_g|round(1) }} g</div>
+
+                                    <div class="p-3 border-b border-r border-slate-100 text-slate-500 font-semibold">Lemak trans</div>
+                                    <div class="p-3 border-b border-slate-100 font-black text-slate-800">{{ item.lemak_trans_g|round(1) }} g</div>
+
+                                    <div class="p-3 border-r border-slate-100 text-slate-500 font-semibold">Sumber data</div>
+                                    <div class="p-3 font-bold text-slate-600 truncate" title="{{ item.sumber_file }}">{{ item.sumber_file or '-' }}</div>
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+
+        <!-- PAGINATION -->
+        <div class="mt-8 bg-white/80 backdrop-blur-xl border border-white rounded-3xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-slate-500 font-semibold">
+                Halaman <b class="text-slate-800">{{ page }}</b> dari <b class="text-slate-800">{{ total_pages }}</b>
+            </p>
+
+            <div class="flex items-center gap-2">
+                {% if page > 1 %}
+                    <a class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:border-emerald-300 hover:text-emerald-700 transition-all"
+                       href="/menu?q={{ q|urlencode }}&kategori={{ kategori|urlencode }}&filter={{ filter }}&sort={{ sort }}&page={{ page - 1 }}">
+                       ← Prev
+                    </a>
+                {% else %}
+                    <span class="px-4 py-2 rounded-xl bg-slate-100 text-slate-300 font-bold">← Prev</span>
+                {% endif %}
+
+                {% set start_page = [1, page - 2]|max %}
+                {% set end_page = [total_pages, page + 2]|min %}
+                {% for p in range(start_page, end_page + 1) %}
+                    <a class="w-10 h-10 rounded-xl inline-flex items-center justify-center font-black transition-all
+                        {% if p == page %}bg-emerald-500 text-white shadow-lg shadow-emerald-500/20{% else %}bg-white border border-slate-200 text-slate-600 hover:border-emerald-300 hover:text-emerald-700{% endif %}"
+                       href="/menu?q={{ q|urlencode }}&kategori={{ kategori|urlencode }}&filter={{ filter }}&sort={{ sort }}&page={{ p }}">
+                        {{ p }}
+                    </a>
+                {% endfor %}
+
+                {% if page < total_pages %}
+                    <a class="px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-bold hover:border-emerald-300 hover:text-emerald-700 transition-all"
+                       href="/menu?q={{ q|urlencode }}&kategori={{ kategori|urlencode }}&filter={{ filter }}&sort={{ sort }}&page={{ page + 1 }}">
+                       Next →
+                    </a>
+                {% else %}
+                    <span class="px-4 py-2 rounded-xl bg-slate-100 text-slate-300 font-bold">Next →</span>
+                {% endif %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+document.querySelectorAll('[data-bar-width]').forEach((el) => {
+    const raw = Number(el.dataset.barWidth || 0);
+    const width = Math.max(0, Math.min(100, Number.isFinite(raw) ? raw : 0));
+    el.style.width = `${width}%`;
+});
+</script>
+
+{% endblock %}

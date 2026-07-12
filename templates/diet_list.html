@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    body { background: linear-gradient(135deg, #ecfdf5 0%, #f8fafc 100%); }
+</style>
+
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+    <div class="absolute bottom-0 right-[-100px] w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 relative z-10">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10">
+        <div>
+            <a href="/dashboard" class="text-sm font-bold text-emerald-700 hover:text-emerald-800">← Kembali ke Dashboard</a>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-slate-800 mt-3">Pilih Diet</h1>
+            <p class="text-slate-500 mt-2 max-w-2xl">Pilih salah satu pola diet yang ingin kamu jalankan. Sistem akan menghitung ulang meal plan sesuai diet aktif.</p>
+        </div>
+        {% if active_diet %}
+        <form method="post" action="/api/deactivate-diet">
+            <button class="bg-white border border-rose-200 text-rose-600 px-5 py-2.5 rounded-xl font-bold hover:bg-rose-50 transition-all shadow-sm">
+                Matikan Diet Aktif
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {% for diet in diets %}
+        <div class="bg-white/90 backdrop-blur rounded-3xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl transition-all group">
+            <div class="relative h-56 bg-slate-100 overflow-hidden">
+                <img src="{{ diet.gambar }}" alt="{{ diet.nama }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" onerror="this.parentElement.innerHTML='<div class=\'absolute inset-0 flex items-center justify-center text-6xl\'>🥗</div>'">
+                <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+                {% if active_diet == diet.id %}
+                <span class="absolute top-4 left-4 bg-emerald-500 text-white text-xs font-extrabold px-4 py-2 rounded-full shadow-lg">Sedang Aktif</span>
+                {% endif %}
+                <h2 class="absolute bottom-5 left-6 right-6 text-2xl font-extrabold text-white drop-shadow">{{ diet.nama }}</h2>
+            </div>
+
+            <div class="p-7">
+                <p class="text-sm text-slate-600 leading-relaxed mb-5">{{ diet.ringkas }}</p>
+
+                <div class="bg-emerald-50/70 border border-emerald-100 rounded-2xl p-4 mb-6">
+                    <div class="text-xs font-extrabold uppercase tracking-wider text-emerald-700 mb-1">Efek ke meal plan</div>
+                    <p class="text-xs text-slate-600 leading-relaxed">{{ diet.efek_makro }}</p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="/diet/{{ diet.slug }}" class="flex-1 text-center bg-white border border-slate-200 text-slate-700 px-5 py-3 rounded-xl font-bold hover:border-emerald-400 hover:text-emerald-700 transition-all">
+                        Lihat Detail
+                    </a>
+                    <form method="post" action="/api/activate-diet/{{ diet.slug }}" class="flex-1">
+                        <button class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 text-white px-5 py-3 rounded-xl font-bold shadow-md hover:shadow-lg hover:scale-[1.01] transition-all">
+                            {% if active_diet == diet.id %}Generate Ulang{% else %}Mulai Diet{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="mt-10 bg-white/80 backdrop-blur rounded-2xl border border-slate-100 p-5 text-sm text-slate-500 leading-relaxed">
+        <b class="text-slate-700">Catatan:</b> Diet aktif berbeda dari Intermittent Fasting. IF tetap dianggap sebagai pola waktu makan, sedangkan pilihan diet di halaman ini mengubah prioritas makanan dan, khusus rendah karbo, mengubah target makro.
+    </div>
+</div>
+{% endblock %}

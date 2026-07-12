@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. Predia - Asisten Diabetes</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+        }
+        .nav-glass {
+            background: rgba(255, 255, 255, .84);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid rgba(226, 232, 240, .72);
+            box-shadow: 0 12px 38px rgba(15, 23, 42, .055);
+        }
+        .nav-pill {
+            transition: transform .22s ease, background .22s ease, color .22s ease, box-shadow .22s ease;
+        }
+        .nav-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .075);
+        }
+        .profile-dropdown {
+            transform-origin: top right;
+            animation: dropdownIn .18s ease both;
+        }
+        @keyframes dropdownIn {
+            from { opacity: 0; transform: translateY(-6px) scale(.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+</head>
+<body class="antialiased text-slate-800 flex flex-col min-h-screen">
+
+    {% set current_path = request.url.path if request is defined else '' %}
+
+    <!-- NAVBAR MODERN -->
+    <header class="sticky top-0 z-50 w-full nav-glass transition-all">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-[auto_1fr_auto] items-center h-16 md:h-20 gap-3 md:gap-5">
+
+                <!-- Kiri: Logo & Nama Aplikasi -->
+                <a href="/dashboard" class="flex-shrink-0 flex items-center gap-3 cursor-pointer group hover:opacity-90 transition-opacity decoration-transparent">
+                    <div class="w-10 h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-heartbeat text-xl"></i>
+                    </div>
+                    <span class="font-extrabold text-xl md:text-2xl text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500 tracking-tight hidden sm:inline">
+                        Dr. Predia
+                    </span>
+                </a>
+
+                <!-- Tengah: Menu Utama -->
+                {% if user %}
+                <nav class="hidden md:flex justify-center">
+                    <div class="inline-flex items-center justify-center gap-1.5 bg-slate-50/90 border border-slate-100 rounded-2xl p-1.5 shadow-sm">
+                        <a href="/dashboard"
+                           class="nav-pill inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold {% if current_path == '/dashboard' %}bg-slate-900 text-white shadow-md shadow-slate-900/10{% else %}text-slate-600 hover:bg-emerald-50 hover:text-emerald-700{% endif %}">
+                            <i class="fas fa-house text-[12px]"></i>
+                            Dashboard
+                        </a>
+                        <a href="/menu"
+                           class="nav-pill inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold {% if current_path.startswith('/menu') %}bg-slate-900 text-white shadow-md shadow-slate-900/10{% else %}text-slate-600 hover:bg-emerald-50 hover:text-emerald-700{% endif %}">
+                            <i class="fas fa-utensils text-[12px]"></i>
+                            Daftar Menu
+                        </a>
+                        <a href="/diet"
+                           class="nav-pill inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold {% if current_path.startswith('/diet') %}bg-slate-900 text-white shadow-md shadow-slate-900/10{% else %}text-slate-600 hover:bg-emerald-50 hover:text-emerald-700{% endif %}">
+                            <i class="fas fa-seedling text-[12px]"></i>
+                            Program Diet
+                        </a>
+                        <a href="/progress"
+                           class="nav-pill inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs lg:text-sm font-extrabold {% if current_path.startswith('/progress') %}bg-slate-900 text-white shadow-md shadow-slate-900/10{% else %}text-slate-600 hover:bg-emerald-50 hover:text-emerald-700{% endif %}">
+                            <i class="fas fa-chart-line text-[12px]"></i>
+                            Progress
+                        </a>
+                    </div>
+                </nav>
+                {% endif %}
+
+                <!-- Kanan: Info User + Dropdown Profil -->
+                {% if user %}
+                <div class="relative flex items-center justify-end gap-3 md:gap-5">
+
+                    <!-- Teks Sapaan -->
+                    <div class="hidden lg:flex flex-col items-end justify-center">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Pasien</span>
+                        <span class="text-sm font-bold text-slate-700 leading-none max-w-[140px] truncate">{{ user.username }}</span>
+                    </div>
+
+                    <!-- Avatar klik dropdown -->
+                    <button id="profileDropdownBtn" type="button" onclick="toggleProfileDropdown()"
+                            class="group flex items-center gap-2 rounded-2xl bg-white border border-emerald-100 p-1.5 pr-2 md:pr-3 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all">
+                        <div class="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-extrabold uppercase shadow-sm shadow-emerald-500/20">
+                            {{ user.username[0] }}
+                        </div>
+                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-emerald-600 transition-colors"></i>
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div id="profileDropdownMenu" class="profile-dropdown hidden absolute right-0 top-14 md:top-16 w-72 rounded-3xl bg-white border border-slate-100 shadow-2xl shadow-slate-900/10 p-3 z-[60]">
+                        <div class="flex items-center gap-3 px-3 py-3 border-b border-slate-100 mb-2">
+                            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-extrabold uppercase shadow-sm">
+                                {{ user.username[0] }}
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-extrabold text-slate-800 truncate">{{ user.username }}</p>
+                                <p class="text-[11px] text-slate-400 font-semibold">Kelola profil & akun</p>
+                            </div>
+                        </div>
+
+                        <!-- Mobile: menu utama masuk dropdown -->
+                        <div class="md:hidden border-b border-slate-100 pb-2 mb-2">
+                            <a href="/dashboard" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                                <span class="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center"><i class="fas fa-house"></i></span>
+                                Dashboard
+                            </a>
+                            <a href="/menu" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                                <span class="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center"><i class="fas fa-utensils"></i></span>
+                                Daftar Menu
+                            </a>
+                            <a href="/diet" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                                <span class="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center"><i class="fas fa-seedling"></i></span>
+                                Program Diet
+                            </a>
+                            <a href="/progress" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                                <span class="w-9 h-9 rounded-xl bg-slate-50 flex items-center justify-center"><i class="fas fa-chart-line"></i></span>
+                                Progress
+                            </a>
+                        </div>
+
+                        <a href="/questionnaire" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-slate-700 hover:bg-emerald-50 hover:text-emerald-700 transition">
+                            <span class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i class="fas fa-user-pen"></i></span>
+                            Edit Profil
+                        </a>
+
+                        <a href="/logout" class="flex items-center gap-3 px-3 py-3 rounded-2xl text-sm font-extrabold text-red-500 hover:bg-red-50 hover:text-red-600 transition">
+                            <span class="w-9 h-9 rounded-xl bg-red-50 text-red-500 flex items-center justify-center"><i class="fas fa-sign-out-alt"></i></span>
+                            Keluar
+                        </a>
+                    </div>
+                </div>
+                {% else %}
+                <div></div>
+                {% endif %}
+
+            </div>
+        </div>
+    </header>
+
+    <!-- KONTEN HALAMAN -->
+    <main class="flex-grow flex flex-col">
+        {% block content %}{% endblock %}
+    </main>
+
+    <div id="toast-container"></div>
+
+    <script>
+        function toggleProfileDropdown() {
+            const menu = document.getElementById('profileDropdownMenu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        document.addEventListener('click', function(event) {
+            const btn = document.getElementById('profileDropdownBtn');
+            const menu = document.getElementById('profileDropdownMenu');
+            if (!btn || !menu) return;
+            if (!btn.contains(event.target) && !menu.contains(event.target)) {
+                menu.classList.add('hidden');
+            }
+        });
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const menu = document.getElementById('profileDropdownMenu');
+                if (menu) menu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

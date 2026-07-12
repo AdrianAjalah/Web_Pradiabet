@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - PrediaBeat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+
+        /* Animasi Muncul Halus */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .delay-100 { animation-delay: 100ms; opacity: 0; }
+        .delay-200 { animation-delay: 200ms; opacity: 0; }
+        .delay-300 { animation-delay: 300ms; opacity: 0; }
+    </style>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4 md:p-6 overflow-hidden relative">
+
+    <!-- Ornamen Background Blur -->
+    <div class="absolute top-[-10%] right-[-10%] w-96 h-96 bg-emerald-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-pulse pointer-events-none"></div>
+    <div class="absolute bottom-[-10%] left-[-5%] w-96 h-96 bg-teal-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-pulse pointer-events-none delay-75"></div>
+
+    <!-- Card Container Utama -->
+    <div class="flex flex-col md:flex-row w-full max-w-4xl bg-white/80 backdrop-blur-2xl border border-white rounded-[2.5rem] shadow-[0_20px_50px_rgba(16,185,129,0.1)] min-h-[600px] relative z-10 overflow-hidden animate-fade-in">
+        
+        <!-- Bagian Kiri (Panel Navigasi & Branding) -->
+        <div class="hidden md:flex flex-col justify-between w-2/5 bg-gradient-to-br from-emerald-500 to-teal-600 text-white relative p-10 shadow-[10px_0_20px_-5px_rgba(0,0,0,0.1)] z-20">
+            <!-- Hiasan Geometris Abstrak -->
+            <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+                <div class="absolute -top-10 -right-10 w-40 h-40 border-[20px] border-white rounded-full"></div>
+                <div class="absolute bottom-10 -left-10 w-24 h-24 border-[10px] border-white rounded-full"></div>
+            </div>
+
+            <!-- Teks Sapaan -->
+            <div class="relative z-10 mt-4">
+                <h2 class="text-3xl font-extrabold mb-2 leading-tight">Mulai<br>Langkahmu!</h2>
+                <p class="text-emerald-50 text-sm opacity-90">Buat akun barumu dan pantau asupan nutrisi dengan AI chatbot pintar.</p>
+            </div>
+
+            <!-- Navigasi Tab Sign In / Sign Up -->
+            <div class="relative z-10 flex flex-col space-y-3 my-auto ml-4">
+                <!-- Tab Inaktif (Sign In) -->
+                <a href="/login" class="text-emerald-100 px-6 py-3.5 font-semibold hover:text-white w-full text-left transition-all hover:translate-x-2">
+                    Sign In
+                </a>
+                <!-- Tab Aktif (Sign Up) -->
+                <a href="/register" class="bg-white text-emerald-600 px-6 py-3.5 rounded-l-2xl font-bold shadow-lg w-full text-left flex items-center justify-between transition-all transform translate-x-4">
+                    <span>Sign Up</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </a>
+            </div>
+
+            <!-- Social Login Kiri -->
+            <div class="relative z-10 mb-4">
+                <p class="mb-3 text-[11px] font-bold text-emerald-100 uppercase tracking-widest">Daftar dengan cepat</p>
+                <div class="flex space-x-3">
+                    <button class="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all transform hover:-translate-y-1"><i class="fab fa-google"></i>G</button>
+                    <button class="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all transform hover:-translate-y-1"><i class="fab fa-facebook-f"></i>f</button>
+                    <button class="w-10 h-10 bg-white/20 hover:bg-white/30 backdrop-blur-md rounded-xl flex items-center justify-center text-white transition-all transform hover:-translate-y-1"><i class="fab fa-twitter"></i>X</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bagian Kanan (Form Register) -->
+        <div class="w-full md:w-3/5 flex flex-col justify-center items-center p-8 sm:p-12 relative z-10 bg-white/50">
+            
+            <!-- Notifikasi Error dari Backend -->
+            {% if error %}
+            <div class="absolute top-6 w-[85%] bg-red-50 border border-red-100 text-red-600 px-4 py-3 rounded-xl text-sm text-center shadow-sm animate-pulse flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path></svg>
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="text-center mb-8 w-full animate-fade-in delay-100 mt-2">
+                <img src="/static/WajahMaskot.png" alt="PrediaBeat" class="w-16 h-16 mx-auto drop-shadow-xl mb-3" onerror="this.src='https://placehold.co/80x80/10b981/ffffff?text=Logo'">
+                <h2 class="text-3xl font-extrabold text-slate-800">Sign Up</h2>
+                <p class="text-sm text-slate-500 font-medium mt-1">Buat akun baru untuk mulai analisis</p>
+            </div>
+
+            <form method="post" action="/register" class="w-full max-w-sm flex flex-col space-y-4 animate-fade-in delay-200">
+                <!-- Input Username -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Username Baru</label>
+                    <input type="text" name="username" placeholder="Pilih username..." required 
+                           class="w-full px-5 py-3 border border-slate-200 rounded-2xl bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white focus:border-transparent transition-all shadow-sm">
+                </div>
+
+                <!-- Input Email -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Alamat email aktif..." required 
+                           class="w-full px-5 py-3 border border-slate-200 rounded-2xl bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white focus:border-transparent transition-all shadow-sm">
+                </div>
+                
+                <!-- Input Password -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 ml-1">Password</label>
+                    <input type="password" name="password" placeholder="Buat password..." required 
+                           class="w-full px-5 py-3 border border-slate-200 rounded-2xl bg-slate-50 text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white focus:border-transparent transition-all shadow-sm">
+                </div>
+
+                <!-- Tombol Daftar -->
+                <button type="submit" class="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-emerald-500/30 transition-all transform hover:-translate-y-1 mt-4 flex justify-center items-center gap-2">
+                    Daftar Sekarang
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </button>
+            </form>
+
+            <!-- Link Login (Hanya muncul di HP) -->
+            <div class="mt-6 text-sm text-center md:hidden animate-fade-in delay-300">
+                <p class="text-slate-500 font-medium">Sudah punya akun? <br>
+                    <a href="/login" class="text-emerald-500 font-bold inline-block mt-1 border-b border-emerald-500 pb-0.5">Masuk di sini</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,1078 @@
+{% extends "base.html" %}
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap');
+
+    :root {
+        --emerald: #10b981;
+        --teal: #14b8a6;
+        --mint: #ecfdf5;
+        --ink: #0f172a;
+        --muted: #64748b;
+    }
+
+    body {
+        font-family: 'Poppins', sans-serif;
+        background:
+            radial-gradient(circle at 12% 8%, rgba(16,185,129,.18), transparent 30%),
+            radial-gradient(circle at 88% 20%, rgba(20,184,166,.14), transparent 32%),
+            linear-gradient(135deg, #f0fdfa 0%, #f8fafc 45%, #ecfdf5 100%);
+        color: var(--ink);
+    }
+
+    @keyframes float-soft {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+    @keyframes fade-up {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes shimmer {
+        0% { transform: translateX(-110%); }
+        100% { transform: translateX(110%); }
+    }
+    @keyframes pulse-ring {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,.28); }
+        50% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+    }
+
+    .page-reveal { animation: fade-up .55s ease both; }
+    .glass-panel {
+        background: rgba(255,255,255,.78);
+        border: 1px solid rgba(255,255,255,.86);
+        box-shadow: 0 22px 70px rgba(15,23,42,.08);
+        backdrop-filter: blur(22px);
+    }
+    .soft-card {
+        background: rgba(255,255,255,.86);
+        border: 1px solid rgba(226,232,240,.8);
+        box-shadow: 0 14px 40px rgba(15,23,42,.055);
+        transition: transform .24s ease, box-shadow .24s ease, border-color .24s ease;
+    }
+    .soft-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(16,185,129,.28);
+        box-shadow: 0 20px 52px rgba(15,23,42,.08);
+    }
+    .section-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 18px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, rgba(16,185,129,.14), rgba(20,184,166,.12));
+        color: #059669;
+        box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+    .step-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .03em;
+        color: #047857;
+        background: #d1fae5;
+        border: 1px solid #a7f3d0;
+        border-radius: 999px;
+        padding: 5px 11px;
+        text-transform: uppercase;
+    }
+    .premium-input, .premium-select {
+        width: 100%;
+        border: 1px solid #e2e8f0;
+        background: rgba(248,250,252,.88);
+        border-radius: 16px;
+        padding: 13px 15px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #334155;
+        outline: none;
+        transition: all .2s ease;
+    }
+    .premium-input:focus, .premium-select:focus {
+        background: #fff;
+        border-color: rgba(20,184,166,.72);
+        box-shadow: 0 0 0 4px rgba(20,184,166,.13);
+    }
+    select.premium-select {
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2364748B' d='M6 8.825L1.175 4 2.238 2.938 6 6.7 9.763 2.938 10.825 4z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 16px center;
+        padding-right: 42px;
+    }
+    .field-label {
+        display: block;
+        font-size: 13px;
+        font-weight: 800;
+        color: #334155;
+        margin-bottom: 8px;
+    }
+    .hint { color: #64748b; font-size: 11px; line-height: 1.55; }
+    .checkbox-item, .freq-card, .waktu-card {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid #e2e8f0;
+        background: rgba(255,255,255,.82);
+        box-shadow: 0 8px 24px rgba(15,23,42,.035);
+        transition: all .22s ease;
+    }
+    .checkbox-item:hover, .freq-card:hover, .waktu-card:hover {
+        transform: translateY(-2px);
+        border-color: rgba(20,184,166,.45);
+        box-shadow: 0 14px 32px rgba(15,23,42,.07);
+    }
+    .checkbox-item.checked, .freq-card.selected, .waktu-card.selected {
+        border-color: #14b8a6 !important;
+        background: linear-gradient(135deg, #f0fdfa 0%, #ffffff 100%) !important;
+        box-shadow: 0 0 0 4px rgba(20,184,166,.13), 0 18px 42px rgba(20,184,166,.12) !important;
+    }
+    .checkbox-item.checked::after, .freq-card.selected::after, .waktu-card.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 22px;
+        height: 22px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #14b8a6;
+        color: white;
+        font-size: 12px;
+        font-weight: 900;
+    }
+    .side-pill {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(248,250,252,.72);
+        border: 1px solid rgba(226,232,240,.9);
+    }
+    .hero-glow {
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-glow::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent);
+        animation: shimmer 4s ease-in-out infinite;
+        pointer-events: none;
+    }
+    .floating-orb { animation: float-soft 6s ease-in-out infinite; }
+    .submit-glow { animation: pulse-ring 2.4s ease-in-out infinite; }
+</style>
+
+<div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+    <div class="floating-orb absolute -top-24 -left-24 w-80 h-80 rounded-full bg-emerald-200/40 blur-3xl"></div>
+    <div class="floating-orb absolute top-36 -right-16 w-96 h-96 rounded-full bg-teal-200/35 blur-3xl" style="animation-delay: -1.5s"></div>
+    <div class="absolute bottom-0 left-1/3 w-72 h-72 rounded-full bg-cyan-100/50 blur-3xl"></div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-14 page-reveal">
+    <div class="text-center mb-9">
+        <div class="inline-flex items-center gap-2 bg-white/70 border border-emerald-100 rounded-full px-4 py-2 text-xs font-extrabold text-emerald-700 shadow-sm mb-5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            Health Assessment • Personalized Meal Plan
+        </div>
+        <div class="mx-auto w-20 h-20 rounded-[1.7rem] bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center text-4xl shadow-2xl shadow-emerald-500/25 mb-5 rotate-3 hover:rotate-0 transition-transform">
+            <i class="fas fa-heart-pulse"></i>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-emerald-800 to-teal-700 mb-3">
+            Kenali Tubuhmu
+        </h1>
+        <p class="text-slate-500 text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
+            Isi data singkat ini supaya Dr. Predia bisa menyusun target kalori, makro, pola waktu makan, dan meal plan yang lebih sesuai dengan kondisi kamu.
+        </p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-7 items-start">
+        <div class="glass-panel rounded-[2.2rem] p-5 md:p-7 lg:p-8">
+            <form id="assessment-form" class="space-y-7">
+
+                <!-- DATA DIRI -->
+                <section class="soft-card rounded-[2rem] p-5 md:p-7">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                        <div class="flex items-start gap-4">
+                            <div class="section-icon"><i class="fas fa-user"></i></div>
+                            <div>
+                                <span class="step-badge"><i class="fas fa-1"></i> Data dasar</span>
+                                <h2 class="text-2xl font-black text-slate-800 mt-2">Profil Tubuh</h2>
+                                <p class="hint mt-1">Dipakai untuk menghitung BMI, TDEE, dan target kalori awal.</p>
+                            </div>
+                        </div>
+                        <div class="hidden md:flex items-center gap-2 text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-100 px-3 py-2 rounded-full">
+                            <i class="fas fa-shield-heart"></i> Data aman & fleksibel
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="field-label">Usia (Tahun) <span class="text-rose-500">*</span></label>
+                            <input type="number" name="usia" required placeholder="Cth: 25" class="premium-input">
+                        </div>
+                        <div>
+                            <label class="field-label">Jenis Kelamin <span class="text-rose-500">*</span></label>
+                            <select name="jenis_kelamin" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Berat Badan (kg) <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.1" name="berat_badan" required placeholder="Cth: 68.5" class="premium-input">
+                        </div>
+                        <div>
+                            <label class="field-label">Tinggi Badan (cm) <span class="text-rose-500">*</span></label>
+                            <input type="number" step="0.1" name="tinggi_badan" required placeholder="Cth: 165" class="premium-input">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="field-label">Lingkar Pinggang (cm) <span class="font-medium text-slate-400">— opsional</span></label>
+                            <input type="number" step="0.1" name="lingkar_pinggang" placeholder="Cth: 85.5" class="premium-input md:max-w-md">
+                            <p class="hint mt-2"><span class="text-base">💡</span> Cara ukur: gunakan pita ukur di area atas pusar. Kalau belum ada alat, boleh dikosongkan.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- RADAR RISIKO -->
+                <section class="soft-card rounded-[2rem] p-5 md:p-7">
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="section-icon bg-orange-50 text-orange-500"><i class="fas fa-bolt"></i></div>
+                        <div>
+                            <span class="step-badge bg-orange-50 border-orange-100 text-orange-700"><i class="fas fa-2"></i> Radar risiko</span>
+                            <h2 class="text-2xl font-black text-slate-800 mt-2">Gaya Hidup Harian</h2>
+                            <p class="hint mt-1">Jawaban ini membantu membaca risiko gula darah dan kebiasaan makan.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+                        <div>
+                            <label class="field-label">Frekuensi Minum Manis <span class="text-rose-500">*</span></label>
+                            <select name="frekuensi_minum_manis" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Setiap hari">Setiap hari</option>
+                                <option value="3-5 kali seminggu">3-5 kali seminggu</option>
+                                <option value="1-2 kali seminggu">1-2 kali seminggu</option>
+                                <option value="Jarang/Tidak pernah">Jarang / Tidak pernah</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Porsi Nasi per Hari <span class="text-rose-500">*</span></label>
+                            <select name="porsi_nasi_per_hari" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Lebih dari 2 porsi">Lebih dari 2 porsi per makan</option>
+                                <option value="2 porsi">2 porsi per makan</option>
+                                <option value="1 porsi">1 porsi per makan</option>
+                                <option value="Kurang dari 1 porsi">Kurang dari 1 porsi</option>
+                            </select>
+                            <p class="hint mt-2">1 porsi ≈ segenggam tangan atau ±100 g nasi matang.</p>
+                        </div>
+                        <div>
+                            <label class="field-label">Frekuensi Olahraga <span class="text-rose-500">*</span></label>
+                            <select name="frekuensi_olahraga" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Tidak pernah">Tidak pernah</option>
+                                <option value="1-2 hari">1-2 hari seminggu</option>
+                                <option value="3-4 hari">3-4 hari seminggu</option>
+                                <option value="5 hari atau lebih">5 hari atau lebih</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Durasi Duduk/Rebahan <span class="text-rose-500">*</span></label>
+                            <select name="durasi_duduk_rebahan" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Kurang dari 4 jam">Kurang dari 4 jam</option>
+                                <option value="4-6 jam">4-6 jam</option>
+                                <option value="6-8 jam">6-8 jam</option>
+                                <option value="Lebih dari 8 jam">Lebih dari 8 jam</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Rata-rata Tidur Malam <span class="text-rose-500">*</span></label>
+                            <select name="durasi_tidur" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="Kurang dari 5 jam">Kurang dari 5 jam</option>
+                                <option value="5-6 jam">5-6 jam</option>
+                                <option value="6-8 jam">6-8 jam</option>
+                                <option value="Lebih dari 8 jam">Lebih dari 8 jam</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="field-label">Riwayat Keluarga Diabetes? <span class="text-rose-500">*</span></label>
+                            <select name="riwayat_keluarga_diabetes" required class="premium-select">
+                                <option value="">Pilih...</option>
+                                <option value="true">Ya, ada</option>
+                                <option value="false">Tidak ada / Tidak tahu</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="rounded-[1.6rem] p-5 border border-rose-100 bg-gradient-to-br from-rose-50 to-white">
+                        <div class="flex items-start gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-2xl bg-white text-rose-500 flex items-center justify-center shadow-sm"><i class="fas fa-triangle-exclamation"></i></div>
+                            <div>
+                                <h3 class="font-black text-rose-800">Gejala yang Sering Dirasakan</h3>
+                                <p class="hint text-rose-600">Centang semua yang sering kamu rasakan. Boleh lebih dari satu.</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" name="gejala_klasik" value="Tidak ada gejala" onchange="toggleExclusive(this, 'cb-gejala')" class="w-4 h-4 text-teal-500 rounded focus:ring-teal-400">
+                                <span class="font-bold text-slate-700">Tidak ada gejala</span>
+                            </label>
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" class="cb-gejala w-4 h-4 text-teal-500 rounded focus:ring-teal-400" name="gejala_klasik" value="Sering haus berlebihan">
+                                <span class="font-bold text-slate-700">Sering haus</span>
+                            </label>
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" class="cb-gejala w-4 h-4 text-teal-500 rounded focus:ring-teal-400" name="gejala_klasik" value="Sering buang air kecil">
+                                <span class="font-bold text-slate-700">Sering BAK</span>
+                            </label>
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" class="cb-gejala w-4 h-4 text-teal-500 rounded focus:ring-teal-400" name="gejala_klasik" value="Cepat lapar / Tidak puas makan">
+                                <span class="font-bold text-slate-700">Cepat lapar</span>
+                            </label>
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" class="cb-gejala w-4 h-4 text-teal-500 rounded focus:ring-teal-400" name="gejala_klasik" value="Luka susah sembuh">
+                                <span class="font-bold text-slate-700">Luka susah sembuh</span>
+                            </label>
+                            <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                <input type="checkbox" class="cb-gejala w-4 h-4 text-teal-500 rounded focus:ring-teal-400" name="gejala_klasik" value="Kesemutan tangan/kaki">
+                                <span class="font-bold text-slate-700">Kesemutan</span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- DATA MEDIS -->
+                <section class="soft-card rounded-[2rem] p-5 md:p-7">
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="section-icon bg-red-50 text-red-500"><i class="fas fa-briefcase-medical"></i></div>
+                        <div>
+                            <span class="step-badge bg-red-50 border-red-100 text-red-700"><i class="fas fa-3"></i> Data medis</span>
+                            <h2 class="text-2xl font-black text-slate-800 mt-2">Pantangan, Penyakit, dan Lab</h2>
+                            <p class="hint mt-1">Opsional, tapi membantu sistem menghindari makanan yang kurang cocok.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-6">
+                        <div>
+                            <label class="field-label">Pantangan / Alergi Makanan</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-pantangan w-4 h-4 text-teal-500 rounded" value="Tidak ada" onchange="toggleExclusive(this, 'cb-pantangan')">
+                                    <span class="font-bold text-slate-700">Tidak ada</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-pantangan w-4 h-4 text-teal-500 rounded" value="Seafood">
+                                    <span class="font-bold text-slate-700">Seafood</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-pantangan w-4 h-4 text-teal-500 rounded" value="Kacang-kacangan">
+                                    <span class="font-bold text-slate-700">Kacang-kacangan</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-pantangan w-4 h-4 text-teal-500 rounded" value="Daging Sapi">
+                                    <span class="font-bold text-slate-700">Daging Sapi</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm md:col-span-2">
+                                    <input type="checkbox" class="cb-pantangan w-4 h-4 text-teal-500 rounded" value="Lainnya" onchange="toggleLainnya(this, 'input-pantangan')">
+                                    <span class="font-bold text-slate-700">Lainnya</span>
+                                </label>
+                            </div>
+                            <input type="text" id="input-pantangan" style="display:none;" class="premium-input mt-3" placeholder="Sebutkan alergi/pantangan lainnya...">
+                            <input type="hidden" name="pantangan_alergi" id="hidden_pantangan">
+                        </div>
+
+                        <div>
+                            <label class="field-label">Penyakit Lain / Obat Rutin</label>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Tidak ada" onchange="toggleExclusive(this, 'cb-penyakit')">
+                                    <span class="font-bold text-slate-700">Tidak ada</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Hipertensi">
+                                    <span class="font-bold text-slate-700">Hipertensi / Darah Tinggi</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Kolesterol">
+                                    <span class="font-bold text-slate-700">Kolesterol</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Asma">
+                                    <span class="font-bold text-slate-700">Asma</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="PCOS">
+                                    <span class="font-bold text-slate-700">PCOS</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Pernah Gula Darah Tinggi / Gestasional">
+                                    <span class="font-bold text-slate-700">Gula Darah Tinggi / Gestasional</span>
+                                </label>
+                                <label class="checkbox-item flex items-center gap-3 p-4 rounded-2xl cursor-pointer text-sm md:col-span-2">
+                                    <input type="checkbox" class="cb-penyakit w-4 h-4 text-teal-500 rounded" value="Lainnya" onchange="toggleLainnya(this, 'input-penyakit')">
+                                    <span class="font-bold text-slate-700">Lainnya</span>
+                                </label>
+                            </div>
+                            <input type="text" id="input-penyakit" style="display:none;" class="premium-input mt-3" placeholder="Sebutkan penyakit/obat lainnya...">
+                            <input type="hidden" name="penyakit_lain_obat" id="hidden_penyakit">
+                        </div>
+
+                        <div class="rounded-[1.6rem] p-5 bg-slate-50/70 border border-slate-100">
+                            <label class="inline-flex items-center gap-3 mb-4 cursor-pointer">
+                                <input type="checkbox" id="cb-lab-tidak" checked onchange="toggleLabInputs()" class="w-4 h-4 text-teal-500 rounded focus:ring-teal-400">
+                                <span class="text-sm font-extrabold text-slate-700">Belum pernah tes lab</span>
+                            </label>
+                            <div id="lab-inputs-container" style="display:none;" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="field-label text-xs">Gula Darah Puasa (mg/dL)</label>
+                                    <input type="number" id="lab_gdp" placeholder="Cth: 110" class="premium-input bg-white">
+                                    <p class="hint mt-1">Tes darah setelah puasa minimal 8 jam.</p>
+                                </div>
+                                <div>
+                                    <label class="field-label text-xs">HbA1c (%)</label>
+                                    <input type="number" step="0.1" id="lab_hba1c" placeholder="Cth: 5.8" class="premium-input bg-white">
+                                    <p class="hint mt-1">Rata-rata gula darah 2–3 bulan terakhir.</p>
+                                </div>
+                            </div>
+                            <input type="hidden" name="hasil_lab" id="hidden_lab">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- PREFERENSI MAKAN -->
+                <section class="soft-card rounded-[2rem] p-5 md:p-7">
+                    <div class="flex items-start gap-4 mb-6">
+                        <div class="section-icon"><i class="fas fa-utensils"></i></div>
+                        <div>
+                            <span class="step-badge"><i class="fas fa-4"></i> Meal plan</span>
+                            <h2 class="text-2xl font-black text-slate-800 mt-2">Pola Waktu & Jadwal Makan</h2>
+                            <p class="hint mt-1">Diet pilihan sekarang diatur dari dashboard. Di sini kamu cukup memilih pola waktu makan dan frekuensinya.</p>
+                        </div>
+                    </div>
+
+                    <div class="rounded-[1.8rem] border border-teal-100 bg-gradient-to-br from-teal-50/80 to-white p-5 md:p-6 mb-6">
+                        <div class="flex items-start gap-3 mb-5">
+                            <div class="w-11 h-11 rounded-2xl bg-white text-teal-600 flex items-center justify-center shadow-sm"><i class="fas fa-clock"></i></div>
+                            <div>
+                                <h3 class="font-black text-slate-800">Pola Waktu Makan</h3>
+                                <p class="hint">Intermittent Fasting adalah pola jam makan, bukan jenis makanan.</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="field-label">Pilih pola waktu makan</label>
+                                <select name="pola_waktu_makan" id="pola_waktu_makan" class="premium-select bg-white">
+                                    <option value="normal">Makan biasa</option>
+                                    <option value="intermittent_fasting">Intermittent Fasting</option>
+                                </select>
+                            </div>
+                            <div id="if-pola-container" style="display:none;">
+                                <label class="field-label">Pola puasa</label>
+                                <select name="pola_puasa" id="pola_puasa" class="premium-select bg-white">
+                                    <option value="">Pilih...</option>
+                                    <option value="12:12">12:12 — puasa 12 jam, makan 12 jam</option>
+                                    <option value="14:10">14:10 — puasa 14 jam, makan 10 jam</option>
+                                    <option value="16:8">16:8 — puasa 16 jam, makan 8 jam</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div id="if-fields" style="display:none;" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                            <div>
+                                <label class="field-label">Jam mulai makan</label>
+                                <input type="time" name="jam_makan_mulai" id="jam_makan_mulai" value="10:00" class="premium-input bg-white">
+                            </div>
+                            <div>
+                                <label class="field-label">Jam selesai makan</label>
+                                <input type="time" name="jam_makan_selesai" id="jam_makan_selesai" value="18:00" class="premium-input bg-white">
+                            </div>
+                            <div class="md:col-span-2 rounded-2xl bg-white/80 border border-teal-100 p-4 text-xs text-teal-700 leading-relaxed">
+                                <b>Tips:</b> jam selesai akan otomatis menyesuaikan pola IF. Sistem akan membuat slot makan di dalam jendela makanmu.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-6" id="meal-frequency-section">
+                        <label class="field-label">Berapa kali makan dalam sehari? <span class="text-rose-500">*</span></label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="meal-freq-container">
+                            <label class="freq-card selected rounded-[1.6rem] p-5 text-center cursor-pointer" id="card-2x">
+                                <input type="radio" name="frekuensi_makan" value="2x" id="freq-2x" checked class="hidden">
+                                <span class="block text-4xl mb-2">🍽️🍽️</span>
+                                <div class="font-black text-slate-800 text-base mb-1">2 kali sehari</div>
+                                <div class="hint">Ringkas, cocok untuk IF atau makan utama saja.</div>
+                            </label>
+                            <label class="freq-card rounded-[1.6rem] p-5 text-center cursor-pointer" id="card-3x">
+                                <input type="radio" name="frekuensi_makan" value="3x" id="freq-3x" class="hidden">
+                                <span class="block text-4xl mb-2">🍽️🍽️🍽️</span>
+                                <div class="font-black text-slate-800 text-base mb-1">3 kali sehari</div>
+                                <div class="hint">Pola makan standar dengan pembagian 30/40/30.</div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="waktu-makan-section">
+                        <label class="field-label">Pilih <span id="waktu-jumlah-label" class="text-teal-600">2</span> waktu makan kamu <span class="text-rose-500">*</span></label>
+                        <p class="hint mb-3">Klik untuk memilih tepat <b id="waktu-jumlah-label2">2</b> waktu makan.</p>
+                        <span id="waktu-warning" style="display:none;" class="text-rose-500 text-xs font-black mb-3 block">⚠️ Pilih tepat <span id="waktu-jumlah-warning">2</span> waktu makan.</span>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="waktu-grid">
+                            <div class="waktu-card rounded-[1.3rem] p-4 text-center cursor-pointer select-none" data-waktu="Pagi" onclick="toggleWaktu(this)">
+                                <span class="block text-3xl mb-1">🌅</span>
+                                <div class="text-sm font-black text-slate-800">Pagi</div>
+                                <div class="text-[10px] text-slate-500 font-semibold">05.00–09.00</div>
+                            </div>
+                            <div class="waktu-card rounded-[1.3rem] p-4 text-center cursor-pointer select-none" data-waktu="Siang" onclick="toggleWaktu(this)">
+                                <span class="block text-3xl mb-1">☀️</span>
+                                <div class="text-sm font-black text-slate-800">Siang</div>
+                                <div class="text-[10px] text-slate-500 font-semibold">11.00–14.00</div>
+                            </div>
+                            <div class="waktu-card rounded-[1.3rem] p-4 text-center cursor-pointer select-none" data-waktu="Sore" onclick="toggleWaktu(this)">
+                                <span class="block text-3xl mb-1">🌤️</span>
+                                <div class="text-sm font-black text-slate-800">Sore</div>
+                                <div class="text-[10px] text-slate-500 font-semibold">15.00–18.00</div>
+                            </div>
+                            <div class="waktu-card rounded-[1.3rem] p-4 text-center cursor-pointer select-none" data-waktu="Malam" onclick="toggleWaktu(this)">
+                                <span class="block text-3xl mb-1">🌙</span>
+                                <div class="text-sm font-black text-slate-800">Malam</div>
+                                <div class="text-[10px] text-slate-500 font-semibold">18.00–21.00</div>
+                            </div>
+                        </div>
+                        <div id="hidden-waktu-container"></div>
+                    </div>
+
+                    <div id="waktu-makan-if-section" style="display:none;">
+                        <label class="field-label">Slot makan dalam jendela IF kamu</label>
+                        <p class="hint mb-3">Jadwal otomatis dibuat berdasarkan jam dan frekuensi makanmu.</p>
+                        <div id="if-slot-preview" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+                        <div id="hidden-waktu-if-container"></div>
+                    </div>
+                </section>
+
+                <div class="sticky bottom-4 z-20">
+                    <button type="button" id="submit-btn" class="submit-glow w-full py-4 md:py-5 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 hover:from-emerald-600 hover:to-teal-600 text-white rounded-[1.6rem] font-black shadow-2xl shadow-emerald-500/25 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-3 text-base md:text-lg">
+                        <i class="fas fa-wand-magic-sparkles"></i> Lihat Hasil Analisis AI
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <aside class="lg:sticky lg:top-24 space-y-5">
+            <div class="glass-panel hero-glow rounded-[2rem] p-6">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-black text-slate-800">Dr. Predia</h3>
+                        <p class="text-xs font-semibold text-slate-500">AI Meal Planner</p>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-600 leading-relaxed mb-5">
+                    Setelah data disimpan, sistem akan membuat target kalori, makro, dan menu harian sesuai profil kamu.
+                </p>
+                <div class="space-y-3">
+                    <div class="side-pill"><span class="text-xl">🎯</span><span class="text-xs font-bold text-slate-600">Target kalori personal</span></div>
+                    <div class="side-pill"><span class="text-xl">🥗</span><span class="text-xs font-bold text-slate-600">Meal plan dengan gambar</span></div>
+                    <div class="side-pill"><span class="text-xl">⏱️</span><span class="text-xs font-bold text-slate-600">Dukung IF 12:12, 14:10, 16:8</span></div>
+                </div>
+            </div>
+
+            <div class="soft-card rounded-[2rem] p-6">
+                <h3 class="font-black text-slate-800 mb-3 flex items-center gap-2"><i class="fas fa-circle-info text-teal-500"></i> Alur Cepat</h3>
+                <div class="space-y-3">
+                    <div class="flex gap-3"><span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center text-xs font-black">1</span><p class="text-xs text-slate-600 leading-relaxed pt-1">Isi profil tubuh dan gaya hidup.</p></div>
+                    <div class="flex gap-3"><span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center text-xs font-black">2</span><p class="text-xs text-slate-600 leading-relaxed pt-1">Pilih pola makan biasa atau IF.</p></div>
+                    <div class="flex gap-3"><span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 grid place-items-center text-xs font-black">3</span><p class="text-xs text-slate-600 leading-relaxed pt-1">Klik analisis dan lihat dashboard.</p></div>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+
+{# Data lama profil untuk mode edit. Ditaruh sebagai JSON agar VS Code tidak menganggap Jinja sebagai error JavaScript. #}
+<script id="profile-data-json" type="application/json">{{ profile_data | tojson | safe }}</script>
+<script id="edit-mode-json" type="application/json">{{ is_edit | tojson | safe }}</script>
+
+<script>
+        // ── Checkbox toggle helpers ──
+        function toggleExclusive(checkbox, className) {
+            if (checkbox.checked) {
+                document.querySelectorAll('.' + className).forEach(cb => {
+                    if (cb !== checkbox) cb.checked = false;
+                });
+                if(className === 'cb-pantangan') { document.getElementById('input-pantangan').style.display = 'none'; }
+                if(className === 'cb-penyakit') { document.getElementById('input-penyakit').style.display = 'none'; }
+            }
+        }
+
+        function toggleLainnya(checkbox, inputId) {
+            document.getElementById(inputId).style.display = checkbox.checked ? 'block' : 'none';
+            if(checkbox.checked) {
+                const groupClass = checkbox.classList.contains('cb-pantangan') ? 'cb-pantangan' : 'cb-penyakit';
+                const noneCb = document.querySelector(`.${groupClass}[value="Tidak ada"]`);
+                if(noneCb) {
+                    noneCb.checked = false;
+                    const label = noneCb.closest('.checkbox-item');
+                    if(label) label.classList.remove('checked');
+                }
+            }
+        }
+
+        document.querySelectorAll('.cb-pantangan, .cb-penyakit').forEach(cb => {
+            if(cb.value !== "Tidak ada") {
+                cb.addEventListener('change', function() {
+                    if(this.checked) {
+                        const groupClass = this.classList.contains('cb-pantangan') ? 'cb-pantangan' : 'cb-penyakit';
+                        const noneCb = document.querySelector(`.${groupClass}[value="Tidak ada"]`);
+                        if(noneCb) {
+                            noneCb.checked = false;
+                            const label = noneCb.closest('.checkbox-item');
+                            if(label) label.classList.remove('checked');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Add visual checked state to checkbox items
+        document.querySelectorAll('.checkbox-item input[type="checkbox"]').forEach(cb => {
+            cb.addEventListener('change', function() {
+                this.closest('.checkbox-item').classList.toggle('checked', this.checked);
+            });
+        });
+
+        function toggleLabInputs() {
+            const isChecked = document.getElementById('cb-lab-tidak').checked;
+            document.getElementById('lab-inputs-container').style.display = isChecked ? 'none' : 'grid';
+            if(isChecked){
+                document.getElementById('lab_gdp').value = "";
+                document.getElementById('lab_hba1c').value = "";
+            }
+        }
+
+        function extractCheckboxData(className, inputId) {
+            let selected = [];
+            document.querySelectorAll('.' + className + ':checked').forEach(cb => {
+                if (cb.value === "Lainnya") {
+                    let lainText = document.getElementById(inputId).value.trim();
+                    if (lainText) selected.push(lainText);
+                } else {
+                    selected.push(cb.value);
+                }
+            });
+            return selected.length > 0 ? selected.join(", ") : "";
+        }
+
+        // ── Meal Plan Logic ──
+        let targetMealCount = 2;
+        const URUTAN_WAKTU = ["Pagi", "Siang", "Sore", "Malam"];
+
+        function updateMealFrequency(freq) {
+            targetMealCount = parseInt(freq);
+            document.getElementById('waktu-jumlah-label').textContent = targetMealCount;
+            document.getElementById('waktu-jumlah-label2').textContent = targetMealCount;
+            document.getElementById('waktu-jumlah-warning').textContent = targetMealCount;
+            document.getElementById('card-2x').classList.toggle('selected', freq === '2');
+            document.getElementById('card-3x').classList.toggle('selected', freq === '3');
+            document.querySelectorAll('.waktu-card.selected').forEach(c => c.classList.remove('selected'));
+            updateHiddenWaktu();
+
+            // Kalau IF aktif, regenerate slot preview saat frekuensi berubah
+            if (isIntermittentFastingActive()) renderIFSlotPreview();
+        }
+
+        document.getElementById('card-2x').addEventListener('click', () => {
+            document.getElementById('freq-2x').checked = true;
+            updateMealFrequency('2');
+        });
+        document.getElementById('card-3x').addEventListener('click', () => {
+            document.getElementById('freq-3x').checked = true;
+            updateMealFrequency('3');
+        });
+
+        function toggleWaktu(card) {
+            const isSelected = card.classList.contains('selected');
+            const currentSelected = document.querySelectorAll('.waktu-card.selected');
+            if (isSelected) {
+                card.classList.remove('selected');
+            } else {
+                if (currentSelected.length >= targetMealCount) {
+                    currentSelected[0].classList.remove('selected');
+                }
+                card.classList.add('selected');
+            }
+            updateHiddenWaktu();
+        }
+
+        function updateHiddenWaktu() {
+            const container = document.getElementById('hidden-waktu-container');
+            container.innerHTML = '';
+            const selected = [];
+            document.querySelectorAll('.waktu-card.selected').forEach(c => {
+                selected.push(c.dataset.waktu);
+            });
+            const ordered = URUTAN_WAKTU.filter(w => selected.includes(w));
+            ordered.forEach(waktu => {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'waktu_makan'; inp.value = waktu;
+                container.appendChild(inp);
+            });
+        }
+
+        // ── IF Slot Auto-Generator ──
+        // Saat IF aktif, waktu makan tidak dipilih manual.
+        // Slot di-generate otomatis dari jam mulai + frekuensi, lalu disimpan ke hidden input.
+
+        function getEatingWindowHours(polaPuasa) {
+            if (!polaPuasa) return 12;
+            const parts = polaPuasa.split(':');
+            if (parts.length !== 2) return 12;
+            return parseInt(parts[1], 10) || 12;
+        }
+
+        function addHoursToTime(timeStr, hoursToAdd) {
+            if (!timeStr) timeStr = '10:00';
+            const [hour, minute] = timeStr.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hour || 0, minute || 0, 0, 0);
+            date.setHours(date.getHours() + hoursToAdd);
+            return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+        }
+
+        function updateJamSelesaiIF() {
+            const polaWaktu = document.getElementById('pola_waktu_makan');
+            const polaPuasa = document.getElementById('pola_puasa');
+            const jamMulai = document.getElementById('jam_makan_mulai');
+            const jamSelesai = document.getElementById('jam_makan_selesai');
+            if (!polaWaktu || !polaPuasa || !jamMulai || !jamSelesai) return;
+            if (polaWaktu.value !== 'intermittent_fasting') return;
+            const durasiMakan = getEatingWindowHours(polaPuasa.value);
+            jamSelesai.value = addHoursToTime(jamMulai.value, durasiMakan);
+            renderIFSlotPreview();
+        }
+
+        // Generate label jam untuk slot IF berdasarkan distribusi merata dalam jendela
+        function generateIFSlots(jamMulai, jamSelesai, count) {
+            // Parse jam jadi menit sejak tengah malam
+            function toMinutes(t) {
+                const [h, m] = (t || '00:00').split(':').map(Number);
+                return h * 60 + m;
+            }
+            function toTimeStr(mins) {
+                const h = Math.floor(mins / 60) % 24;
+                const m = mins % 60;
+                return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+            }
+
+            const startMin = toMinutes(jamMulai || '10:00');
+            const endMin   = toMinutes(jamSelesai || '18:00');
+            const windowMin = endMin > startMin ? endMin - startMin : (endMin + 1440 - startMin);
+
+            const slots = [];
+            const labels = count === 2 ? ['Makan 1', 'Makan 2'] : ['Makan 1', 'Makan 2', 'Makan 3'];
+            const emojis = ['🌤️', '☀️', '🌙'];
+
+            for (let i = 0; i < count; i++) {
+                const fraction = count === 1 ? 0.5 : i / (count - 1);
+                const slotMin = startMin + Math.round(fraction * windowMin);
+                slots.push({
+                    label: labels[i],
+                    jam: toTimeStr(slotMin),
+                    emoji: emojis[i] || '🍽️',
+                });
+            }
+            return slots;
+        }
+
+        // Render kartu preview slot IF dan isi hidden inputs
+        function renderIFSlotPreview() {
+            const jamMulai   = document.getElementById('jam_makan_mulai')?.value || '10:00';
+            const jamSelesai = document.getElementById('jam_makan_selesai')?.value || '18:00';
+            const count      = targetMealCount;
+
+            const slots = generateIFSlots(jamMulai, jamSelesai, count);
+
+            // Render preview cards
+            const preview = document.getElementById('if-slot-preview');
+            if (preview) {
+                preview.innerHTML = slots.map(s => `
+                    <div class="flex-1 rounded-2xl p-4 text-center bg-white/85 border border-teal-100 shadow-sm hover:-translate-y-0.5 transition-all">
+                        <span class="block text-2xl mb-1">${s.emoji}</span>
+                        <div class="text-sm font-bold text-gray-800">${s.label}</div>
+                        <div class="text-xs text-teal-600 font-semibold mt-1">${s.jam}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Isi hidden inputs untuk dikirim ke backend (nama field: waktu_makan)
+            const ifContainer = document.getElementById('hidden-waktu-if-container');
+            if (ifContainer) {
+                ifContainer.innerHTML = '';
+                slots.forEach(s => {
+                    const inp = document.createElement('input');
+                    inp.type = 'hidden';
+                    inp.name = 'waktu_makan';
+                    inp.value = s.label; // "Makan 1", "Makan 2", dll.
+                    ifContainer.appendChild(inp);
+                });
+            }
+        }
+
+        function isIntermittentFastingActive() {
+            const el = document.getElementById('pola_waktu_makan');
+            return el && el.value === 'intermittent_fasting';
+        }
+
+        function togglePolaWaktuMakan() {
+            const isIF = isIntermittentFastingActive();
+            const ifPola   = document.getElementById('if-pola-container');
+            const ifFields = document.getElementById('if-fields');
+
+            if (ifPola)   ifPola.style.display   = isIF ? 'block' : 'none';
+            if (ifFields) ifFields.style.display  = isIF ? 'grid'  : 'none';
+
+            const normalSection = document.getElementById('waktu-makan-section');
+            const ifSection     = document.getElementById('waktu-makan-if-section');
+            if (normalSection) normalSection.style.display = isIF ? 'none' : 'block';
+            if (ifSection)     ifSection.style.display     = isIF ? 'block' : 'none';
+
+            if (isIF) {
+                // Bersihkan hidden input mode normal biar gak ikut ke-submit
+                const normalContainer = document.getElementById('hidden-waktu-container');
+                if (normalContainer) normalContainer.innerHTML = '';
+                updateJamSelesaiIF();
+            } else {
+                // Bersihkan hidden input mode IF biar gak ikut ke-submit
+                const ifContainer = document.getElementById('hidden-waktu-if-container');
+                if (ifContainer) ifContainer.innerHTML = '';
+                updateHiddenWaktu();
+            }
+        }
+
+        document.getElementById('pola_waktu_makan')?.addEventListener('change', togglePolaWaktuMakan);
+        document.getElementById('pola_puasa')?.addEventListener('change', updateJamSelesaiIF);
+        document.getElementById('jam_makan_mulai')?.addEventListener('change', updateJamSelesaiIF);
+
+        function validateWaktuMakan() {
+            // Mode IF: slot sudah digenerate otomatis, tidak perlu validasi grid manual
+            if (isIntermittentFastingActive()) {
+                const ifContainer = document.getElementById('hidden-waktu-if-container');
+                return ifContainer && ifContainer.querySelectorAll('input').length > 0;
+            }
+            const selected = document.querySelectorAll('.waktu-card.selected');
+            const warning = document.getElementById('waktu-warning');
+            if (selected.length !== targetMealCount) {
+                warning.style.display = 'block';
+                return false;
+            }
+            warning.style.display = 'none';
+            return true;
+        }
+
+        // ── Submit ──
+        document.getElementById('submit-btn').addEventListener('click', async function() {
+            const form = document.getElementById('assessment-form');
+            if (!form.checkValidity()) { form.reportValidity(); return; }
+            if (!validateWaktuMakan()) {
+                const targetSection = isIntermittentFastingActive()
+                    ? document.getElementById('waktu-makan-if-section')
+                    : document.getElementById('waktu-makan-section');
+                targetSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            document.getElementById('hidden_pantangan').value = extractCheckboxData('cb-pantangan', 'input-pantangan');
+            document.getElementById('hidden_penyakit').value = extractCheckboxData('cb-penyakit', 'input-penyakit');
+
+            // Catatan: slot waktu makan untuk mode IF sudah otomatis terisi
+            // lewat renderIFSlotPreview() setiap kali jam/frekuensi berubah,
+            // jadi tidak perlu fungsi tambahan di titik submit ini.
+
+            if (document.getElementById('cb-lab-tidak').checked) {
+                document.getElementById('hidden_lab').value = "";
+            } else {
+                let gdp = document.getElementById('lab_gdp').value;
+                let hba1c = document.getElementById('lab_hba1c').value;
+                let labText = [];
+                if(gdp) labText.push(`Gula darah puasa ${gdp}`);
+                if(hba1c) labText.push(`HbA1c ${hba1c}%`);
+                document.getElementById('hidden_lab').value = labText.join(", ");
+            }
+
+            const formData = new FormData(form);
+            const btn = document.getElementById('submit-btn');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sedang Menganalisis...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/submit-assessment', {
+                    method: 'POST', body: formData, credentials: 'same-origin'
+                });
+                const data = await response.json();
+                if(data.success) { window.location.href = '/dashboard'; }
+            } catch (error) {
+                alert('Terjadi kesalahan saat menyimpan data.');
+                btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Lihat Hasil Analisis AI';
+                btn.disabled = false;
+            }
+        });
+
+        // ══════════════════════════════════════════
+        // ── PRE-POPULATE FORM UNTUK EDIT PROFIL ──
+        // ══════════════════════════════════════════
+        let existingProfile = null;
+        try {
+            existingProfile = JSON.parse((document.getElementById('profile-data-json')?.textContent || 'null').trim() || 'null');
+        } catch (e) {
+            existingProfile = null;
+        }
+        const isEditMode = (document.getElementById('edit-mode-json')?.textContent || 'false').trim() === 'true';
+
+        if (isEditMode && existingProfile) {
+            document.querySelector('.text-center h1').textContent = 'Perbarui Data Kesehatanmu';
+            document.querySelector('.text-center p').textContent = 'Data akan dihitung ulang otomatis setelah disimpan.';
+            document.getElementById('submit-btn').innerHTML = '<i class="fas fa-arrows-rotate"></i> Simpan & Analisis Ulang';
+
+            const textFields = ['usia', 'berat_badan', 'tinggi_badan'];
+            textFields.forEach(field => {
+                const el = document.querySelector(`input[name="${field}"]`);
+                if (el && existingProfile[field] !== undefined && existingProfile[field] !== null) el.value = existingProfile[field];
+            });
+            if (existingProfile.lingkar_pinggang !== undefined && existingProfile.lingkar_pinggang !== null) {
+                const lp = document.querySelector('input[name="lingkar_pinggang"]');
+                if (lp) lp.value = existingProfile.lingkar_pinggang;
+            }
+
+            const selectFields = [
+                'jenis_kelamin', 'frekuensi_minum_manis', 'porsi_nasi_per_hari', 
+                'frekuensi_olahraga', 'durasi_duduk_rebahan', 'durasi_tidur', 'riwayat_keluarga_diabetes',
+                'pola_waktu_makan', 'pola_puasa'
+            ];
+            selectFields.forEach(field => {
+                const el = document.querySelector(`select[name="${field}"]`);
+                if (el && existingProfile[field] !== undefined && existingProfile[field] !== null) {
+                    let val = existingProfile[field];
+                    if (field === 'riwayat_keluarga_diabetes') val = String(val).toLowerCase();
+                    el.value = val;
+                }
+            });
+
+            ['jam_makan_mulai', 'jam_makan_selesai'].forEach(field => {
+                const el = document.querySelector(`input[name="${field}"]`);
+                if (el && existingProfile[field] !== undefined && existingProfile[field] !== null) el.value = existingProfile[field];
+            });
+            togglePolaWaktuMakan();
+
+            if (existingProfile.gejala_klasik && existingProfile.gejala_klasik.length > 0) {
+                existingProfile.gejala_klasik.forEach(gejala => {
+                    const cb = document.querySelector(`input[name="gejala_klasik"][value="${gejala}"]`);
+                    if (cb) {
+                        cb.checked = true;
+                        cb.closest('.checkbox-item').classList.add('checked');
+                    }
+                });
+            }
+
+            // 👇 Logika untuk mencentang kembali Pantangan
+            if (existingProfile.pantangan_alergi) {
+                const items = existingProfile.pantangan_alergi.split(', ');
+                items.forEach(val => {
+                    const cb = document.querySelector(`input.cb-pantangan[value="${val}"]`);
+                    if (cb) {
+                        cb.checked = true;
+                        cb.closest('.checkbox-item').classList.add('checked');
+                    } else if (val !== "Tidak ada" && val !== "") {
+                        const cbLainnya = document.querySelector('input.cb-pantangan[value="Lainnya"]');
+                        if (cbLainnya) {
+                            cbLainnya.checked = true;
+                            cbLainnya.closest('.checkbox-item').classList.add('checked');
+                            const inputLain = document.getElementById('input-pantangan');
+                            inputLain.style.display = 'block';
+                            inputLain.value = val;
+                        }
+                    }
+                });
+            } else {
+                const cb = document.querySelector('input.cb-pantangan[value="Tidak ada"]');
+                if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
+            }
+
+            // 👇 Logika untuk mencentang kembali Penyakit
+            if (existingProfile.penyakit_lain_obat) {
+                const items = existingProfile.penyakit_lain_obat.split(', ');
+                items.forEach(val => {
+                    const cb = document.querySelector(`input.cb-penyakit[value="${val}"]`);
+                    if (cb) {
+                        cb.checked = true;
+                        cb.closest('.checkbox-item').classList.add('checked');
+                    } else if (val !== "Tidak ada" && val !== "") {
+                        const cbLainnya = document.querySelector('input.cb-penyakit[value="Lainnya"]');
+                        if (cbLainnya) {
+                            cbLainnya.checked = true;
+                            cbLainnya.closest('.checkbox-item').classList.add('checked');
+                            const inputLain = document.getElementById('input-penyakit');
+                            inputLain.style.display = 'block';
+                            inputLain.value = val;
+                        }
+                    }
+                });
+            } else {
+                const cb = document.querySelector('input.cb-penyakit[value="Tidak ada"]');
+                if (cb) { cb.checked = true; cb.closest('.checkbox-item').classList.add('checked'); }
+            }
+
+            // 👇 Logika untuk mengembalikan Data Lab
+            if (existingProfile.hasil_lab) {
+                const labCb = document.getElementById('cb-lab-tidak');
+                if (labCb) {
+                    labCb.checked = false;
+                    document.getElementById('lab-inputs-container').style.display = 'grid';
+                    
+                    const labStr = existingProfile.hasil_lab;
+                    if (labStr.includes("Gula darah puasa")) {
+                        const match = labStr.match(/Gula darah puasa ([\d.]+)/);
+                        if (match) document.getElementById('lab_gdp').value = match[1];
+                    }
+                    if (labStr.includes("HbA1c")) {
+                        const match = labStr.match(/HbA1c ([\d.]+)/);
+                        if (match) document.getElementById('lab_hba1c').value = match[1];
+                    }
+                }
+            }
+
+            if (existingProfile.frekuensi_makan) {
+                const freq = existingProfile.frekuensi_makan;
+                const radioEl = document.getElementById(`freq-${freq}`);
+                if (radioEl) {
+                    radioEl.checked = true;
+                    updateMealFrequency(freq.replace('x',''));
+                }
+            }
+            if (existingProfile.waktu_makan && existingProfile.waktu_makan.length > 0 && !isIntermittentFastingActive()) {
+                document.querySelectorAll('.waktu-card.selected').forEach(c => c.classList.remove('selected'));
+                existingProfile.waktu_makan.forEach(waktu => {
+                    const card = document.querySelector(`.waktu-card[data-waktu="${waktu}"]`);
+                    if (card) card.classList.add('selected');
+                });
+                updateHiddenWaktu();
+            }
+        }
+
+        // Initial state untuk mode tambah data baru
+        togglePolaWaktuMakan();
+    </script>
+{% endblock %}

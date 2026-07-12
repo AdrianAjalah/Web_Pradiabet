@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrediaBeat - Kendali Gula Darah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Font Poppins */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+
+        /* ── CUSTOM ANIMATIONS ── */
+        /* Animasi Muncul dari Bawah */
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Animasi Melayang (Floating) */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0px); }
+        }
+        /* Animasi Melayang Lambat untuk HP */
+        @keyframes floatSlow {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(-2deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        /* Utility Classes untuk Animasi */
+        .animate-fade-in-up {
+            opacity: 0;
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        .animate-float-slow {
+            animation: floatSlow 5s ease-in-out infinite;
+        }
+        
+        /* Delay Utilities */
+        .delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+    </style>
+</head>
+<body class="bg-slate-50 text-gray-800 overflow-x-hidden relative">
+
+    <!-- Ornamen Background Halaman -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 pointer-events-none"></div>
+    <div class="absolute top-[20%] right-[-5%] w-96 h-96 bg-teal-200 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 pointer-events-none"></div>
+
+    <!-- NAVBAR (Sticky Glassmorphism) -->
+    <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-lg border-b border-white/20 shadow-sm transition-all duration-300">
+        <div class="flex items-center justify-between px-6 md:px-10 py-4 max-w-7xl mx-auto">
+            <div class="flex items-center space-x-3 cursor-pointer group">
+                <img src="/static/WajahMaskot.png" alt="Logo" class="w-12 h-12 md:w-14 md:h-14 group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                <span class="text-xl md:text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-teal-500">
+                    Chat Prediabet
+                </span>
+            </div>
+            
+            <div class="hidden md:flex space-x-8 text-sm font-bold text-gray-500">
+                <a href="#" class="hover:text-teal-600 transition-colors">Home</a>
+                <a href="#" class="hover:text-teal-600 transition-colors">About</a>
+                <a href="#" class="hover:text-teal-600 transition-colors">Contact Us</a>
+            </div>
+            
+            <div class="flex space-x-3">
+                <a href="/login" class="text-teal-600 bg-teal-50 px-5 py-2.5 rounded-full font-bold hover:bg-teal-100 transition-colors text-sm border border-teal-100">
+                    Sign in
+                </a>
+                <a href="/register" class="bg-gradient-to-r from-emerald-400 to-teal-500 text-white px-5 py-2.5 rounded-full font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/50 transform hover:-translate-y-0.5 transition-all text-sm">
+                    Sign Up
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <section class="max-w-7xl mx-auto px-6 md:px-10 flex flex-col md:flex-row items-center justify-between mt-16 mb-24 relative z-10">
+        <!-- Teks Kiri -->
+        <div class="w-full md:w-1/2 space-y-6 text-center md:text-left z-10">
+            <div class="inline-block px-4 py-2 bg-orange-100 text-orange-600 font-bold rounded-full text-xs tracking-wider animate-fade-in-up mb-2 border border-orange-200">
+                🚀 AI HEALTH ASSISTANT
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold leading-tight italic animate-fade-in-up delay-100">
+                Kendali Gula Darah di <br class="hidden md:block"> Genggaman Anda. <br>
+                <span class="text-gray-700">ChatBot</span> 
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-red-500">Prediabet</span>
+            </h1>
+            <p class="text-gray-500 text-sm md:text-base max-w-md mx-auto md:mx-0 animate-fade-in-up delay-200 leading-relaxed font-medium">
+                Temui asisten pintar yang siap membantu Anda memantau nutrisi dan mengelola risiko prediabetes dengan cara yang lebih mudah dan menyenangkan.
+            </p>
+            <div class="pt-4 animate-fade-in-up delay-300">
+                <a href="/login" class="inline-flex items-center justify-center bg-gradient-to-r from-emerald-400 to-teal-500 text-white px-8 py-4 rounded-full font-bold text-lg shadow-xl shadow-teal-500/30 hover:shadow-teal-500/50 transform hover:-translate-y-1 transition-all group">
+                    Coba PrediaBeat Sekarang 
+                    <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- Gambar Kanan (Mascot) -->
+        <div class="w-full md:w-1/2 flex justify-center mt-16 md:mt-0 relative animate-fade-in-up delay-200">
+            <!-- Efek Cahaya di belakang maskot -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-emerald-400/20 to-teal-400/20 rounded-full blur-3xl w-3/4 h-3/4 m-auto animate-pulse"></div>
+            <!-- Maskot Melayang -->
+            <img src="/static/Maskot.png" alt="Mascot PrediaBeat" class="w-3/4 max-w-md drop-shadow-[0_20px_30px_rgba(0,0,0,0.15)] animate-float relative z-10">
+        </div>
+    </section>
+
+    <!-- APP PROMO SECTION -->
+    <section class="max-w-7xl mx-auto px-6 md:px-10 py-20 flex flex-col md:flex-row items-center justify-between gap-12 relative z-10">
+        <!-- Gambar HP -->
+        <div class="w-full md:w-5/12 flex justify-center md:justify-end pr-0 md:pr-10 animate-fade-in-up">
+            <div class="relative">
+                <div class="absolute inset-0 bg-teal-500/20 rounded-[3rem] blur-2xl transform translate-x-4 translate-y-4"></div>
+                <img src="/static/Hp.jpg" alt="Aplikasi Prediabetes" class="w-64 md:w-80 shadow-2xl rounded-[2.5rem] border-8 border-white animate-float-slow relative z-10">
+            </div>
+        </div>
+        
+        <!-- Teks Kanan -->
+        <div class="w-full md:w-7/12 space-y-6 text-center md:text-left pl-0 md:pl-5">
+            <h2 class="text-3xl md:text-5xl font-extrabold italic animate-fade-in-up delay-100">
+                Pantau Gula Darah di <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-500">Mana Saja!</span>
+            </h2>
+            <p class="text-gray-500 leading-relaxed text-sm md:text-base font-medium animate-fade-in-up delay-200 max-w-xl mx-auto md:mx-0">
+                Kini PrediaBeat hadir lebih dekat dalam versi aplikasi. Dapatkan notifikasi pengingat makan dan pantau asupan nutrisi harianmu langsung dari smartphone, dan nikmati fitur lengkap mulai dari pemindaian makanan hingga konsultasi cepat dengan chatbot AI kami yang lebih responsif. Instal sekarang untuk memulai perjalanan sehatmu.
+            </p>
+            <div class="pt-4 animate-fade-in-up delay-300">
+                <a href="#" class="inline-flex items-center bg-[#111215] text-white px-8 py-4 rounded-2xl font-bold hover:bg-gray-800 hover:shadow-xl hover:shadow-black/20 transform hover:-translate-y-1 transition-all group">
+                    <svg class="w-7 h-7 mr-3 group-hover:scale-110 transition-transform" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 22.3407V1.6593C4 1.13459 4.58245 0.82079 5.02008 1.10996L20.8929 11.606C21.2828 11.8636 21.2828 12.4338 20.8929 12.6914L5.02008 23.1874C4.58245 23.4766 4 23.1628 4 22.6381V22.3407Z" fill="url(#paint0_linear)"/>
+                        <path d="M14.9218 15.654L4 23.1874V1.6593L14.9218 9.19277L9.93291 12.4234L14.9218 15.654Z" fill="#F4F4F4" fill-opacity="0.2"/>
+                        <defs>
+                            <linearGradient id="paint0_linear" x1="4" y1="12.4234" x2="21.1111" y2="12.4234" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#2196F3"/>
+                                <stop offset="0.33" stop-color="#4CAF50"/>
+                                <stop offset="0.66" stop-color="#FFC107"/>
+                                <stop offset="1" stop-color="#F44336"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <div class="text-left">
+                        <div class="text-[10px] font-medium text-gray-400 uppercase tracking-wider">Download di</div>
+                        <div class="text-lg leading-none mt-0.5">Play Store</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-[#111215] text-white relative mt-20 pt-16 pb-8 overflow-hidden">
+        <!-- Hiasan Geometris Footer -->
+        <div class="absolute -bottom-10 -left-10 w-40 h-40 rounded-full border-[16px] border-emerald-500 opacity-80 pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 pointer-events-none">
+            <svg width="150" height="150" viewBox="0 0 100 100" class="opacity-80">
+                <polygon points="100,100 100,0 0,100" fill="#10b981" opacity="0.5"/>
+                <polygon points="100,100 100,30 30,100" fill="#047857"/>
+            </svg>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-6 md:px-10 relative z-10 flex flex-col md:flex-row items-center md:items-start justify-between gap-10">
+            
+            <!-- Footer Kiri -->
+            <div class="flex items-center space-x-5 md:w-5/12">
+                <div class="relative bg-white/5 p-2 rounded-full border border-white/10 backdrop-blur-sm">
+                    <img src="/static/Maskot.png" alt="Mascot Chat" class="w-20 h-20 drop-shadow-md">
+                </div>
+                <div class="space-y-3">
+                    <p class="text-sm text-gray-400 font-medium leading-relaxed">Teman cerdasmu menjaga gula darah tetap seimbang.</p>
+                    <a href="#" class="inline-flex items-center bg-white text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-400 hover:text-white transition-colors group">
+                        <svg class="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M4 22.3407V1.6593C4 1.13459 4.58245 0.82079 5.02008 1.10996L20.8929 11.606C21.2828 11.8636 21.2828 12.4338 20.8929 12.6914L5.02008 23.1874C4.58245 23.4766 4 23.1628 4 22.6381V22.3407Z"/>
+                        </svg>
+                        Play Store
+                    </a>
+                </div>
+            </div>
+
+            <!-- Footer Tengah (Garis) -->
+            <div class="hidden md:flex flex-col items-center justify-center w-2/12 relative pt-2">
+                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
+                <div class="w-px h-24 bg-gradient-to-b from-emerald-500 to-transparent my-1"></div>
+            </div>
+
+            <!-- Footer Kanan -->
+            <div class="md:w-5/12 text-center md:text-right space-y-3 text-sm text-gray-400 font-medium">
+                <a href="#" class="block hover:text-emerald-400 hover:translate-x-[-4px] transition-all">Tentang Kami (Tim Riset)</a>
+                <a href="#" class="block hover:text-emerald-400 hover:translate-x-[-4px] transition-all">Panduan Pengguna</a>
+                <a href="#" class="block hover:text-emerald-400 hover:translate-x-[-4px] transition-all">FAQ</a>
+                <p class="pt-4 text-emerald-500/80">support@prediabeat.com</p>
+                <p class="pt-2 text-[11px] text-gray-600 uppercase tracking-widest">&copy; 2026 PrediaBeat. Created by Team Riset</p>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

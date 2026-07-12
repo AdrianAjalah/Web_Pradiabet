@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    /* Mengubah warna background khusus untuk halaman Chatbot */
+    body {
+        background: linear-gradient(135deg, #ecfdf5 0%, #f8fafc 100%);
+    }
+
+    /* Styling khusus untuk merapikan hasil format Markdown dari AI */
+    .bot-content p { margin-bottom: 0.75rem; line-height: 1.6; }
+    .bot-content p:last-child { margin-bottom: 0; }
+    .bot-content ul, .bot-content ol { margin-top: 0.5rem; margin-bottom: 0.75rem; padding-left: 1.5rem; list-style-type: disc; }
+    .bot-content li { margin-bottom: 0.25rem; line-height: 1.5; }
+    .bot-content strong { color: #0f172a; font-weight: 800; }
+    
+    /* Custom Scrollbar untuk Chat History */
+    #chat-history::-webkit-scrollbar { width: 6px; }
+    #chat-history::-webkit-scrollbar-track { background: transparent; }
+    #chat-history::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    #chat-history::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+</style>
+
+<!-- Ornamen Background Kaca Hiasan -->
+<div class="fixed top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+    <div class="absolute -top-32 -left-32 w-96 h-96 bg-emerald-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
+    <div class="absolute top-1/2 right-[-100px] w-80 h-80 bg-teal-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full h-[calc(100vh-80px)] flex flex-col relative z-10">
+
+    <!-- Header Chat -->
+    <div class="mb-6 flex items-center gap-4">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+            <i class="fas fa-robot text-2xl"></i>
+        </div>
+        <div>
+            <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">Konsultasi Dr. Predia AI</h2>
+            <p class="text-slate-500 font-medium text-sm mt-0.5">Tanyakan rekomendasi nutrisi atau seputar diabetes di sini.</p>
+        </div>
+    </div>
+
+    <!-- Container Chat Utama (Glassmorphism) -->
+    <div class="flex-grow flex flex-col bg-white/80 backdrop-blur-xl border border-white rounded-[2rem] shadow-[0_10px_40px_rgb(0,0,0,0.04)] overflow-hidden">
+        
+        <!-- Chat History Area -->
+        <div id="chat-history" class="flex-grow p-6 overflow-y-auto flex flex-col gap-6 bg-slate-50/30">
+            
+            <!-- Pesan Pembuka Bot -->
+            <div class="self-start flex gap-3 max-w-[85%] md:max-w-[75%]">
+                <img src="/static/logo.png" alt="Dr. Predia" class="w-8 h-8 rounded-full object-cover drop-shadow-sm flex-shrink-0" onerror="this.src='https://placehold.co/32x32/10b981/ffffff?text=AI'">
+                <div class="bg-white border border-slate-100 text-slate-700 px-5 py-4 rounded-2xl rounded-tl-none shadow-sm text-[15px] bot-content">
+                    <p>Halo <strong>{{ user.username }}</strong>! 👋</p>
+                    <p>Berdasarkan profil Anda, ada yang bisa saya bantu terkait menu makanan atau rutinitas olahraga hari ini?</p>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Input Area -->
+        <div class="p-4 bg-white border-t border-slate-100/60">
+            <div class="flex items-end gap-3 relative">
+                <textarea id="chat-input" rows="1" placeholder="Ketik pertanyaan Anda di sini..." 
+                          class="w-full bg-slate-50 border border-slate-200 text-slate-700 text-[15px] rounded-2xl px-5 py-4 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:bg-white transition-all resize-none overflow-hidden" 
+                          style="min-height: 56px; max-height: 120px;"></textarea>
+                
+                <button id="send-btn" class="flex-shrink-0 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white h-[56px] w-[56px] rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 transition-transform transform hover:scale-105 hover:-translate-y-0.5">
+                    <i class="fas fa-paper-plane text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Library Marked.js untuk render Markdown -->
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const chatHistory = document.getElementById('chat-history');
+
+    // Fitur Auto-resize Textarea
+    chatInput.addEventListener('input', function() {
+        this.style.height = '56px';
+        this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+
+        // 1. Tampilkan pesan user (Warna Hijau)
+        chatHistory.innerHTML += `
+            <div class="self-end bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-3.5 rounded-2xl rounded-tr-none max-w-[85%] md:max-w-[75%] shadow-md text-[15px] leading-relaxed">
+                ${message.replace(/\n/g, '<br>')}
+            </div>
+        `;
+        
+        chatInput.value = "";
+        chatInput.style.height = '56px'; // Reset tinggi input
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        // Indikator loading
+        const loadingId = 'loading-' + Date.now();
+        chatHistory.innerHTML += `
+            <div id="${loadingId}" class="self-start flex gap-3 max-w-[85%] md:max-w-[75%]">
+                <img src="/static/logo.png" alt="Dr. Predia" class="w-8 h-8 rounded-full object-cover opacity-70 flex-shrink-0" onerror="this.src='https://placehold.co/32x32/10b981/ffffff?text=AI'">
+                <div class="bg-white border border-slate-100 text-slate-400 px-5 py-4 rounded-2xl rounded-tl-none shadow-sm text-[15px] italic flex items-center gap-2">
+                    <i class="fas fa-circle-notch fa-spin text-emerald-500"></i> Menganalisis data nutrisi...
+                </div>
+            </div>
+        `;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        try {
+            // 2. Kirim ke backend
+            const response = await fetch('/tanya', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pertanyaan: message })
+            });
+            
+            const data = await response.json();
+            document.getElementById(loadingId).remove();
+
+            // 3. Tampilkan jawaban (Format HTML Rapi)
+            const formattedAnswer = marked.parse(data.jawaban);
+            
+            chatHistory.innerHTML += `
+                <div class="self-start flex gap-3 max-w-[85%] md:max-w-[85%]">
+                    <img src="/static/logo.png" alt="Dr. Predia" class="w-8 h-8 rounded-full object-cover drop-shadow-sm flex-shrink-0 mt-1" onerror="this.src='https://placehold.co/32x32/10b981/ffffff?text=AI'">
+                    <div class="bg-white border border-slate-100 text-slate-700 px-6 py-5 rounded-2xl rounded-tl-none shadow-sm text-[15px] bot-content">
+                        ${formattedAnswer}
+                        
+                        <!-- Label Sumber Referensi -->
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            <i class="fas fa-book-medical"></i> Sumber: <span class="text-emerald-600">${data.sumber}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+        } catch (error) {
+            document.getElementById(loadingId).remove();
+            
+            // Pesan Error
+            chatHistory.innerHTML += `
+                <div class="self-start flex gap-3 max-w-[85%] md:max-w-[75%]">
+                    <div class="w-8 h-8 rounded-full bg-red-100 text-red-500 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="bg-red-50 border border-red-100 text-red-700 px-5 py-4 rounded-2xl rounded-tl-none shadow-sm text-[15px]">
+                        Maaf, terjadi kesalahan koneksi. Pastikan server AI sedang berjalan!
+                    </div>
+                </div>
+            `;
+            console.error(error);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    
+    // Kirim pesan dengan tombol Enter, Shift+Enter untuk baris baru
+    chatInput.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+</script>
+{% endblock %}
